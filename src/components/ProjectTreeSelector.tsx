@@ -1,0 +1,311 @@
+import { useState } from "react";
+import { ChevronDown, ChevronRight, Building2, FolderKanban, CheckSquare, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+export interface ProjectNode {
+  id: string;
+  name: string;
+  type: "client" | "project" | "subtask";
+  children?: ProjectNode[];
+  parentId?: string;
+  color?: string;
+}
+
+interface ProjectTreeSelectorProps {
+  projects: ProjectNode[];
+  selectedNode: ProjectNode | null;
+  onSelectNode: (node: ProjectNode) => void;
+}
+
+export function ProjectTreeSelector({
+  projects,
+  selectedNode,
+  onSelectNode,
+}: ProjectTreeSelectorProps) {
+  const [open, setOpen] = useState(false);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const toggleNode = (nodeId: string) => {
+    const newExpanded = new Set(expandedNodes);
+    if (newExpanded.has(nodeId)) {
+      newExpanded.delete(nodeId);
+    } else {
+      newExpanded.add(nodeId);
+    }
+    setExpandedNodes(newExpanded);
+  };
+
+  const getNodePath = (node: ProjectNode | null): string => {
+    if (!node) return "Seleccionar proyecto";
+    
+    const parts: string[] = [node.name];
+    let current = node;
+    
+    const findParent = (nodeId: string | undefined, nodes: ProjectNode[]): ProjectNode | null => {
+      if (!nodeId) return null;
+      
+      for (const n of nodes) {
+        if (n.id === nodeId) return n;
+        if (n.children) {
+          const found = findParent(nodeId, n.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    
+    while (current.parentId) {
+      const parent = findParent(current.parentId, projects);
+      if (parent) {
+        parts.unshift(parent.name);
+        current = parent;
+      } else {
+        break;
+      }
+    }
+    
+    return parts.join(" > ");
+  };
+
+  // Función para filtrar nodos basado en búsqueda
+  const filterNodes = (nodes: ProjectNode[], term: string): ProjectNode[] => {
+    if (!term) return nodes;
+    
+    return nodes.reduce<ProjectNode[]>((acc, node) => {
+      const matchesSearch = node.name.toLowerCase().includes(term.toLowerCase());
+      const filteredChildren = node.children ? filterNodes(node.children, term) : [];
+      
+      if (matchesSearch || filteredChildren.length > 0) {
+        acc.push({
+          ...node,
+          children: filteredChildren.length > 0 ? filteredChildren : node.children,
+        });
+        
+        // Auto-expandir nodos que coinciden con búsqueda
+        if (filteredChildren.length > 0 || matchesSearch) {
+          setExpandedNodes(prev => new Set([...prev, node.id]));
+        }
+      }
+      
+      return acc;
+    }, []);
+  };
+
+  const filteredProjects = filterNodes(projects, searchTerm);
+
+  const getIcon = (node: ProjectNode, isExpanded: boolean, hasChildren: boolean) => {
+    const iconClasses = "h-5 w-5";
+    
+    if (node.type === "client") {
+      return <Building2 className={`${iconClasses} text-blue-600 dark:text-blue-400`} />;
+    }
+    if (node.type === "project") {
+      return <FolderKanban className={`${iconClasses} text-purple-600 dark:text-purple-400`} />;
+    }
+    return <CheckSquare className={`${iconClasses} text-green-600 dark:text-green-400`} />;
+  };
+
+  const renderNode = (node: ProjectNode, level: number = 0) => {
+    const isExpanded = expandedNodes.has(node.id);
+    const hasChildren = node.children && node.children.length > 0;
+    const isSelected = selectedNode?.id === node.id;
+    const canSelect = node.type === "subtask";
+
+    const getBgColor = () => {
+      if (isSelected) return "bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-l-4 border-blue-500";
+      return "hover:bg-gray-50 dark:hover:bg-gray-800";
+    };
+
+    const getTextColor = () => {
+      if (node.type === "client") return "font-semibold text-gray-900 dark:text-gray-100";
+      if (node.type === "project") return "font-medium text-gray-800 dark:text-gray-200";
+      return "text-gray-700 dark:text-gray-300";
+    };
+
+    return (
+      <div key={node.id}>
+        <div
+          className={`flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${getBgColor()}`}
+          style={{ marginLeft: `${level * 16}px` }}
+          onClick={() => {
+            if (hasChildren) {
+              toggleNode(node.id);
+            }
+            if (canSelect) {
+              onSelectNode(node);
+              setOpen(false);
+            }
+          }}
+        >
+          {/* Expand/Collapse Button */}
+          {hasChildren ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleNode(node.id);
+              }}
+              className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              )}
+            </button>
+          ) : (
+            <div className="w-5" />
+          )}
+
+          {/* Icon with background */}
+          <div className={`p-1.5 rounded-lg ${
+            node.type === "client" 
+              ? "bg-blue-100 dark:bg-blue-950" 
+              : node.type === "project"
+              ? "bg-purple-100 dark:bg-purple-950"
+              : "bg-green-100 dark:bg-green-950"
+          }`}>
+            {getIcon(node, isExpanded, hasChildren)}
+          </div>
+
+          {/* Node name */}
+          <div className="flex-1 flex items-center gap-2">
+            <span className={`text-sm ${getTextColor()} ${isSelected ? "text-blue-700 dark:text-blue-400" : ""}`}>
+              {node.name}
+            </span>
+            
+            {/* Badge for node type */}
+            {!canSelect && (
+              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                node.type === "client"
+                  ? "bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400"
+                  : "bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-400"
+              }`}>
+                {node.type === "client" ? "Cliente" : "Proyecto"}
+              </span>
+            )}
+          </div>
+
+          {/* Checkmark for selected */}
+          {isSelected && (
+            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          )}
+        </div>
+
+        {/* Children */}
+        {hasChildren && isExpanded && (
+          <div className="mt-1">
+            {node.children!.map((child) => renderNode(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div
+          className="w-full md:w-[600px] flex items-center justify-between bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[70px] py-4 px-4 rounded-md transition-all shadow-sm hover:shadow-md cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            {selectedNode ? (
+              <div className={`p-2 rounded-lg ${
+                selectedNode.type === "subtask"
+                  ? "bg-green-100 dark:bg-green-950"
+                  : "bg-gray-100 dark:bg-gray-800"
+              }`}>
+                {selectedNode.type === "subtask" ? (
+                  <CheckSquare className="h-6 w-6 text-green-600 dark:text-green-400" />
+                ) : (
+                  <FolderKanban className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                )}
+              </div>
+            ) : (
+              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                <FolderKanban className="h-6 w-6 text-gray-400" />
+              </div>
+            )}
+            
+            <div className="flex flex-col items-start gap-1">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Proyecto / Tarea
+              </span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 text-left">
+                {getNodePath(selectedNode)}
+              </span>
+            </div>
+          </div>
+          <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-[calc(100vw-2rem)] md:w-[600px] p-0" align="start" sideOffset={8}>
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50">
+          <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-1">
+            Selecciona una tarea
+          </h3>
+          <p className="text-xs text-gray-600 dark:text-gray-400">
+            Navega por la jerarquía: Cliente → Proyecto → Tarea
+          </p>
+        </div>
+
+        {/* Search */}
+        <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Buscar tareas, proyectos o clientes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        {/* Tree */}
+        <ScrollArea className="h-[450px]">
+          <div className="p-3 space-y-1">
+            {filteredProjects.length > 0 ? (
+              filteredProjects.map((node) => renderNode(node, 0))
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No se encontraron resultados</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded bg-blue-500"></div>
+              <span>Cliente</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded bg-purple-500"></div>
+              <span>Proyecto</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded bg-green-500"></div>
+              <span>Tarea</span>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
