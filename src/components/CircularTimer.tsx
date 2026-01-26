@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { motion } from "motion/react";
 
 interface CircularTimerProps {
@@ -5,7 +6,18 @@ interface CircularTimerProps {
   isRunning: boolean;
 }
 
-export function CircularTimer({ seconds, isRunning }: CircularTimerProps) {
+/**
+ * Componente de presentación para el timer circular
+ * 
+ * Componente puro que solo recibe props y renderiza.
+ * No maneja estado interno ni lógica de negocio.
+ * 
+ * Optimizado con React.memo para evitar re-renders innecesarios.
+ */
+export const CircularTimer = memo(function CircularTimer({ 
+  seconds, 
+  isRunning 
+}: CircularTimerProps) {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
@@ -84,4 +96,4 @@ export function CircularTimer({ seconds, isRunning }: CircularTimerProps) {
       </div>
     </div>
   );
-}
+});
