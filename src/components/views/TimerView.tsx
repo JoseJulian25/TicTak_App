@@ -10,12 +10,8 @@ import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTimerActions } from "@/hooks/useTimerActions";
-import { SkeletonTimer } from "@/components/skeletons/SkeletonTimer";
-import { useAppInitialization } from "@/hooks/useAppInitialization";
 
 export function TimerView() {
-  const { isInitialized } = useAppInitialization();
-
   const {
     selectedTaskId,
     setSelectedTaskId,
@@ -33,11 +29,6 @@ export function TimerView() {
     handleCancelSave,
     handleReset,
   } = useTimerActions();
-
-  // Show skeleton while loading
-  if (!isInitialized) {
-    return <SkeletonTimer />;
-  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
