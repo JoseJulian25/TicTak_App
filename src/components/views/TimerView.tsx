@@ -47,12 +47,12 @@ export function TimerView() {
         </div>
 
         {/* Controls */}
-        <div className="w-full max-w-md mb-8 pl-20">
+        <div className="w-full max-w-md mb-8 md:pl-20">
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <Button
               onClick={handleStartPause}
               size="lg"
-            className={`flex-1 ${
+            className={`flex-1 py-3 ${
               isRunning
                 ? "bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
                 : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
@@ -79,7 +79,7 @@ export function TimerView() {
             onClick={handleSave}
             size="lg"
             disabled={elapsedSeconds === 0}
-            className={`flex-1 ${
+            className={`flex-1 py-3 ${
               elapsedSeconds === 0 ? "opacity-50 cursor-not-allowed" : ""
             } bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700`}
           >
@@ -91,7 +91,7 @@ export function TimerView() {
             size="lg"
             disabled={elapsedSeconds === 0 && !activeSession}
             variant="outline"
-            className="sm:w-auto"
+            className="sm:w-auto py-4"
           >
             <RotateCcw className="h-5 w-5" />
           </Button>

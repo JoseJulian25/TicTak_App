@@ -3,6 +3,7 @@ import { Clock, Trash2, Loader2 } from "lucide-react";
 import { useSessionStore } from "@/stores/useSessionStore";
 import { useEnrichedSessions } from "@/hooks/useEnrichedSessions";
 import { formatDuration, getDayStart, getDayEnd } from "@/lib/time-utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
 /**
@@ -15,16 +16,21 @@ export function SessionHistory() {
   const sessions = useSessionStore((state) => state.sessions);
   const deleteSession = useSessionStore((state) => state.deleteSession);
   
-  // Calcular sesiones de hoy con useMemo
+  // Calcular sesiones de hoy con useMemo y ordenar cronológicamente (más antigua primero)
   const sessionsToday = useMemo(() => {
     const today = new Date();
     const dayStart = getDayStart(today);
     const dayEnd = getDayEnd(today);
     
-    return sessions.filter((session) => {
-      const sessionDate = new Date(session.startTime);
-      return sessionDate >= dayStart && sessionDate <= dayEnd;
-    });
+    return sessions
+      .filter((session) => {
+        const sessionDate = new Date(session.startTime);
+        return sessionDate >= dayStart && sessionDate <= dayEnd;
+      })
+      .sort((a, b) => {
+        // Ordenar por startTime ascendente (más antigua primero)
+        return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+      });
   }, [sessions]);
   
   // Enriquecer sesiones con información completa
@@ -67,8 +73,9 @@ export function SessionHistory() {
             <p className="text-sm mt-1">Inicia el timer para trackear tu tiempo</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {enrichedSessions.map((session) => (
+          <ScrollArea className="h-[400px]">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {enrichedSessions.map((session) => (
               <div
                 key={session.id}
                 className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex flex-col sm:flex-row items-start sm:items-center gap-4"
@@ -120,7 +127,8 @@ export function SessionHistory() {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          </ScrollArea>
         )}
       </div>
     </div>

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTimerStore } from "@/stores/useTimerStore";
 import { useTimerInterval } from "@/hooks/useTimerInterval";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { useProjectStore } from "@/stores/useProjectStore";
 import { saveActiveSession } from "@/lib/session-manager";
-import { UNNAMED_TASK_ID } from "@/lib/constants";
+import { UNNAMED_TASK_ID, LOCAL_STORAGE_KEYS } from "@/lib/constants";
+import { Storage } from "@/lib/storage";
 import { toast } from "sonner";
 
 export function useTimerActions() {
@@ -25,6 +26,38 @@ export function useTimerActions() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
+
+  // Efecto para actualizar el taskId de la sesión activa cuando se selecciona una tarea
+  useEffect(() => {
+    if (selectedTaskId && activeSession) {
+      // Solo actualizar si es diferente
+      if (activeSession.taskId !== selectedTaskId) {
+        const updatedSession = {
+          ...activeSession,
+          taskId: selectedTaskId,
+        };
+        
+        useTimerStore.setState({ activeSession: updatedSession });
+        
+        Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
+          session: updatedSession,
+          elapsedSeconds,
+        });
+        
+        // Feedback al usuario
+        const wasUnnamed = activeSession.taskId === UNNAMED_TASK_ID;
+        if (wasUnnamed) {
+          toast.success('Tarea asignada', {
+            description: 'La sesión ahora está asociada a una tarea',
+          });
+        } else {
+          toast.info('Tarea cambiada', {
+            description: 'La sesión se reasignó a otra tarea',
+          });
+        }
+      }
+    }
+  }, [selectedTaskId, activeSession, elapsedSeconds]);
 
   const handleStartPause = () => {
     if (isRunning) {
@@ -57,7 +90,6 @@ export function useTimerActions() {
         description: `${Math.floor(result.session.duration / 60)} minutos registrados`,
       });
 
-      setSelectedTaskId(null);
     } else {
       toast.error('Error al guardar', {
         description: result.error,
@@ -84,9 +116,7 @@ export function useTimerActions() {
       if (activeSession) {
         useTimerStore.setState((state) => ({
           ...state, 
-          activeSession: state.activeSession 
-            ? { ...state.activeSession, taskId: newTask.id } 
-            : state.activeSession,
+          activeSession: state.activeSession ? { ...state.activeSession, taskId: newTask.id } : state.activeSession,
         }));
       }
       
@@ -122,8 +152,6 @@ export function useTimerActions() {
     if (elapsedSeconds === 0 && !activeSession) return;
     
     resetTimer();
-    setSelectedTaskId(null);
-    
   };
 
   return {
