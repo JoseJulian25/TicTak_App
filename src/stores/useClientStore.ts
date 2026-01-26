@@ -56,9 +56,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     set((state) => {
 
       const updatedClients = state.clients.map((client) =>
-        client.id === id
-          ? { ...client, ...data, updatedAt: new Date()}
-          : client
+        client.id === id ? { ...client, ...data, updatedAt: new Date()} : client
       );
 
 
@@ -74,9 +72,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
 
       // Soft delete: solo marcar como archivado
       const updatedClients = state.clients.map((client) =>
-        client.id === id
-          ? { ...client, isArchived: true, updatedAt: new Date()}
-          : client
+        client.id === id ? { ...client, isArchived: true, updatedAt: new Date()} : client
       );
 
       Storage.setItem(LOCAL_STORAGE_KEYS.CLIENTS, updatedClients);

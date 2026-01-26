@@ -24,10 +24,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
   isRunning: false,
   isPaused: false,
 
-  /**
-   * Iniciar un nuevo timer para una tarea
-   * 
-   */
+
   startTimer: (taskId: string) => {
     const state = get();
 
@@ -55,12 +52,6 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
     });
   },
 
-  /**
-   * Pausar el timer actual
-   * 
-   * Guarda el momento en que se pausó para poder calcular
-   * el tiempo correcto al reanudar
-   */
   pauseTimer: () => {
     const state = get();
 
@@ -181,10 +172,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
  * 
  */
 const recoverSession = () => {
-  const saved = Storage.getItem<{
-    session: ActiveSession;
-    elapsedSeconds: number;
-  }>(LOCAL_STORAGE_KEYS.ACTIVE_SESSION);
+  const saved = Storage.getItem<{ session: ActiveSession; elapsedSeconds: number;}>(LOCAL_STORAGE_KEYS.ACTIVE_SESSION);
 
   if (!saved || !saved.session) {
     return;
@@ -210,11 +198,6 @@ const recoverSession = () => {
     elapsedSeconds: finalElapsed,
     isRunning: false,
     isPaused: true,
-  });
-
-  console.log('✅ Sesión recuperada:', {
-    taskId: session.taskId,
-    elapsedSeconds: finalElapsed,
   });
 };
 

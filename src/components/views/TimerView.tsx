@@ -54,23 +54,18 @@ export function TimerView() {
       resumeTimer();
       return;
     }
-    
-    // Si no hay sesión activa → iniciar nueva
-    // Usar tarea seleccionada o ID temporal si no hay ninguna
+  
     const taskIdToUse = selectedTaskId || UNNAMED_TASK_ID;
     startTimer(taskIdToUse);
   };
 
-  /**
-   * Guardar la sesión actual
-   */
+
   const handleSave = () => {
     if (elapsedSeconds === 0) return;
     
-    // Si el timer está sin tarea real (usando ID temporal), mostrar diálogo
     if (activeSession?.taskId === UNNAMED_TASK_ID) {
       setShowSaveDialog(true);
-      pauseTimer(); // Pausar mientras nombra la tarea
+      pauseTimer(); 
       return;
     }
     
@@ -81,7 +76,7 @@ export function TimerView() {
       toast.success('Sesión guardada correctamente', {
         description: `${Math.floor(result.session.duration / 60)} minutos registrados`,
       });
-      // Limpiar selección
+
       setSelectedTaskId(null);
     } else {
       toast.error('Error al guardar', {
@@ -90,14 +85,11 @@ export function TimerView() {
     }
   };
 
-  /**
-   * Guardar sesión con nueva tarea (desde el diálogo)
-   */
+
   const handleSaveWithNewTask = () => {
     if (!newTaskName.trim()) return;
     
     try {
-      // Validar que exista el proyecto General
       if (!generalProject) {
         toast.error('Proyecto no encontrado', {
           description: 'No se encontró el proyecto "General". Por favor crea uno en Ajustes.',
@@ -105,7 +97,6 @@ export function TimerView() {
         return;
       }
       
-      // Crear nueva tarea en Personal > General
       const newTask = addTask({
         name: newTaskName.trim(),
         projectId: generalProject.id,
@@ -114,10 +105,7 @@ export function TimerView() {
       // Actualizar el activeSession con el taskId real
       if (activeSession) {
         useTimerStore.setState((state) => ({
-          ...state,
-          activeSession: state.activeSession
-            ? { ...state.activeSession, taskId: newTask.id }
-            : state.activeSession,
+          ...state, activeSession: state.activeSession ? { ...state.activeSession, taskId: newTask.id } : state.activeSession,
         }));
       }
       
@@ -139,9 +127,9 @@ export function TimerView() {
         });
       }
     } catch (error) {
-      console.error('Error al crear tarea:', error);
-      toast.error('Error al crear la tarea', {
-        description: 'Ocurrió un problema al crear la nueva tarea. Intenta de nuevo.',
+        console.error('Error al crear tarea:', error);
+        toast.error('Error al crear la tarea', {
+          description: 'Ocurrió un problema al crear la nueva tarea. Intenta de nuevo.',
       });
     }
   };

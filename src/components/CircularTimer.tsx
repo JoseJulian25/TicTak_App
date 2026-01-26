@@ -12,7 +12,6 @@ interface CircularTimerProps {
  * Componente puro que solo recibe props y renderiza.
  * No maneja estado interno ni lógica de negocio.
  * 
- * Optimizado con React.memo para evitar re-renders innecesarios.
  */
 export const CircularTimer = memo(function CircularTimer({ 
   seconds, 

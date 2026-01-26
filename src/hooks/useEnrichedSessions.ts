@@ -7,13 +7,6 @@ import { useTaskStore } from '@/stores/useTaskStore';
 /**
  * Hook para enriquecer sesiones con información completa
  * 
- * Toma un array de sesiones (que solo tienen taskId) y agrega:
- * - taskName
- * - projectName  
- * - clientName
- * - projectPath ("Cliente > Proyecto > Tarea")
- * - projectColor
- * 
  * Útil para mostrar contexto completo en historial y reportes
  */
 export const useEnrichedSessions = (sessions: Session[]): SessionWithDetails[] => {

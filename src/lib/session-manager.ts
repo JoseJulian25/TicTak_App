@@ -10,19 +10,6 @@ export type SaveSessionResult =
   | { success: true; session: Session }
   | { success: false; error: string };
 
-/**
- * Guarda la sesión activa del timer como una sesión completada
- * 
- * Este es el punto de orquestación entre el timer activo y las sesiones guardadas:
- * 1. Obtiene información del timer actual
- * 2. Valida que sea una sesión válida
- * 3. Calcula startTime y endTime correctos
- * 4. Guarda en el store de sesiones
- * 5. Limpia el timer activo
- * 
- * @param notes - Notas opcionales para la sesión
- * @returns Resultado con la sesión guardada o error
- */
 export function saveActiveSession(notes?: string): SaveSessionResult {
 
   const timerInfo = useTimerStore.getState().getCurrentTaskInfo();
@@ -71,11 +58,6 @@ export function saveActiveSession(notes?: string): SaveSessionResult {
   };
 }
 
-/**
- * Descarta la sesión activa sin guardarla
- * 
- * @returns true si había sesión activa y se descartó
- */
 export function discardActiveSession(): boolean {
   const timerInfo = useTimerStore.getState().getCurrentTaskInfo();
   
@@ -89,10 +71,6 @@ export function discardActiveSession(): boolean {
   return true;
 }
 
-/**
- * Verifica si hay una sesión activa en el timer
- * 
- */
 export function hasActiveSession(): boolean {
   return useTimerStore.getState().getCurrentTaskInfo() !== null;
 }
