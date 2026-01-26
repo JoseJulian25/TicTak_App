@@ -1,5 +1,9 @@
+"use client";
+
 import { Clock, BarChart3, Folder, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useScrollDirection } from "@/hooks/useScrollDirection";
+import { useEffect, useRef } from "react";
 
 interface MobileNavProps {
   activeView: string;
@@ -7,6 +11,19 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ activeView, onViewChange }: MobileNavProps) {
+  const scrollDirection = useScrollDirection();
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!headerRef.current) return;
+    
+    if (scrollDirection === "down") {
+      headerRef.current.style.transform = "translateY(-100%)";
+    } else {
+      headerRef.current.style.transform = "translateY(0)";
+    }
+  }, [scrollDirection]);
+
   const menuItems = [
     { id: "timer", label: "Temporizador", icon: Clock },
     { id: "stats", label: "Estadísticas", icon: BarChart3 },
@@ -16,7 +33,11 @@ export function MobileNav({ activeView, onViewChange }: MobileNavProps) {
   return (
     <>
       {/* Top Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <div 
+        ref={headerRef}
+        className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700"
+        style={{ transition: 'transform 0.3s ease-in-out' }}
+      >
         <div className="flex items-center justify-between p-4">
           {/* Logo and Name - Left */}
           <div className="flex items-center gap-3">
