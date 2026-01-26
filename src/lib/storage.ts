@@ -1,6 +1,6 @@
 const isClient = typeof window !== "undefined";
 
-export const storage = {
+export const Storage = {
   /**
    * Lee un valor del localStorage y lo deserializa
    */

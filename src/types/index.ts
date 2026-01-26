@@ -13,6 +13,7 @@ export interface Client {
   id: string;
   name: string;
   color?: string; // Color para visualización (opcional)
+  description?: string;
   createdAt: Date;
   updatedAt: Date;
   isArchived: boolean;
@@ -118,6 +119,7 @@ export interface TreeNode {
 export interface CreateClientInput {
   name: string;
   color?: string;
+  description?: string;
 }
 
 export interface CreateProjectInput {
