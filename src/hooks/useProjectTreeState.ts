@@ -64,28 +64,45 @@ export const useProjectTreeState = (selectedTaskId: string | null) => {
   /**
    * Filtrar nodos basado en búsqueda
    */
-  const filterNodes = (nodes: TreeNode[], term: string): TreeNode[] => {
-    if (!term) return nodes;
+  const filterNodes = useMemo(() => {
+    if (!searchTerm) return projects;
     
-    return nodes.reduce<TreeNode[]>((acc, node) => {
-      const matchesSearch = node.name.toLowerCase().includes(term.toLowerCase());
-      const filteredChildren = node.children ? filterNodes(node.children, term) : [];
-      
-      if (matchesSearch || filteredChildren.length > 0) {
-        acc.push({
-          ...node,
-          children: filteredChildren.length > 0 ? filteredChildren : node.children,
-        });
+    const nodesToExpand = new Set<string>();
+    
+    const filter = (nodes: TreeNode[]): TreeNode[] => {
+      return nodes.reduce<TreeNode[]>((acc, node) => {
+        const matchesSearch = node.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const filteredChildren = node.children ? filter(node.children) : [];
         
-        // Auto-expandir nodos que coinciden con búsqueda
-        if (filteredChildren.length > 0 || matchesSearch) {
-          setExpandedNodes(prev => new Set([...prev, node.id]));
+        if (matchesSearch || filteredChildren.length > 0) {
+          acc.push({
+            ...node,
+            children: filteredChildren.length > 0 ? filteredChildren : node.children,
+          });
+          
+          // Marcar para auto-expandir
+          if (filteredChildren.length > 0 || matchesSearch) {
+            nodesToExpand.add(node.id);
+          }
         }
-      }
-      
-      return acc;
-    }, []);
-  };
+        
+        return acc;
+      }, []);
+    };
+    
+    const result = filter(projects);
+    
+    // Expandir nodos después del filtrado
+    if (nodesToExpand.size > 0) {
+      setExpandedNodes(prev => {
+        const newSet = new Set(prev);
+        nodesToExpand.forEach(id => newSet.add(id));
+        return newSet;
+      });
+    }
+    
+    return result;
+  }, [projects, searchTerm]);
 
   /**
    * Toggle expansión de un nodo
@@ -101,13 +118,7 @@ export const useProjectTreeState = (selectedTaskId: string | null) => {
   };
 
   // Nodo seleccionado actual
-  const selectedNode = findNodeById(projects, selectedTaskId);
-
-  // Proyectos filtrados por búsqueda (memoizado)
-  const filteredProjects = useMemo(
-    () => filterNodes(projects, searchTerm),
-    [projects, searchTerm]
-  );
+  const selectedNode = useMemo(() => findNodeById(projects, selectedTaskId), [projects, selectedTaskId]);
 
   return {
     // Estado
@@ -116,7 +127,7 @@ export const useProjectTreeState = (selectedTaskId: string | null) => {
     expandedNodes,
     searchTerm,
     selectedNode,
-    filteredProjects,
+    filteredProjects: filterNodes,
     
     // Acciones
     setSearchTerm,
