@@ -72,12 +72,10 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
   saveSession: (sessionData) => {
 
     if (sessionData.duration < MIN_SESSION_DURATION_SECONDS) {
-      console.warn(`Sesión demasiado corta. Mínimo: ${MIN_SESSION_DURATION_SECONDS}s`);
       return null;
     }
 
     if (sessionData.startTime >= sessionData.endTime) {
-      console.warn('startTime debe ser anterior a endTime');
       return null;
     }
 
@@ -93,7 +91,6 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
     Storage.setItem(LOCAL_STORAGE_KEYS.SESSIONS, updatedSessions);
 
-    console.log('Sesión guardada:', newSession);
     return newSession;
   },
 
@@ -102,7 +99,6 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     const sessionIndex = state.sessions.findIndex((s) => s.id === id);
 
     if (sessionIndex === -1) {
-      console.warn('Sesión no encontrada:', id);
       return false;
     }
 
@@ -112,7 +108,6 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     };
 
     if (data.duration !== undefined && data.duration < MIN_SESSION_DURATION_SECONDS) {
-      console.warn(`Duración inválida. Mínimo: ${MIN_SESSION_DURATION_SECONDS}s`);
       return false;
     }
 
@@ -122,7 +117,6 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
     Storage.setItem(LOCAL_STORAGE_KEYS.SESSIONS, updatedSessions);
 
-    console.log('Sesión actualizada:', updatedSession);
     return true;
   },
 
@@ -131,7 +125,6 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     const sessionExists = state.sessions.some((s) => s.id === id);
 
     if (!sessionExists) {
-      console.warn('Sesión no encontrada:', id);
       return false;
     }
 
@@ -140,7 +133,6 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
     Storage.setItem(LOCAL_STORAGE_KEYS.SESSIONS, updatedSessions);
 
-    console.log('Sesión eliminada:', id);
     return true;
   },
 }));

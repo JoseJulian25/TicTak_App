@@ -134,10 +134,6 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
     }
   },
 
-  /**
-   * Resetear el timer (limpiar todo)
-   * 
-   */
   resetTimer: () => {
     set({
       activeSession: null,
@@ -149,10 +145,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
     Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, null);
   },
 
-  /**
-   * Obtener información del timer actual
-   * 
-   */
+
   getCurrentTaskInfo: () => {
     const state = get();
 

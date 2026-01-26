@@ -27,7 +27,6 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
     addProject: (input: CreateProjectInput) => {
 
-        //Validar que el Cliente exista
         const client  = useClientStore.getState().getClientById(input.clientId);
 
         if (!client) {
@@ -56,10 +55,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
     updateProject: (id: string, data: Partial<Project>) => {
         set((state) => {
-            const updatedProjects = state.projects.map((project) => id === project.id
-                ? { ...project, ...data, updatedAt: new Date() }
-                : project
+            const updatedProjects = state.projects.map(
+                (project) => id === project.id ? { ...project, ...data, updatedAt: new Date() } : project
             );
+
             Storage.setItem(LOCAL_STORAGE_KEYS.PROJECTS, updatedProjects);
             return { projects: updatedProjects };
         });
@@ -68,16 +67,14 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     deleteProject: (id: string) => {
         set((state) => {
             // Soft delete: solo marcar como archivado
-      const updatedProjects = state.projects.map((project) =>
-        project.id === id
-          ? { ...project, isArchived: true, updatedAt: new Date()}
-          : project
-      );
+            const updatedProjects = state.projects.map((project) =>
+                project.id === id ? { ...project, isArchived: true, updatedAt: new Date()} : project
+            );
 
-      Storage.setItem(LOCAL_STORAGE_KEYS.PROJECTS, updatedProjects);
+            Storage.setItem(LOCAL_STORAGE_KEYS.PROJECTS, updatedProjects);
 
-      return { projects: updatedProjects };
-        });
+            return { projects: updatedProjects };
+                });
     },
 
     getProjectById: (id: string) => {
