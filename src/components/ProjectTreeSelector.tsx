@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Building2, FolderKanban, CheckSquare, Search, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Building2, FolderKanban, CheckSquare, Search, Loader2, Plus } from "lucide-react";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -149,7 +150,7 @@ export function ProjectTreeSelector({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div
-          className="w-full md:w-[600px] flex items-center justify-between bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[70px] py-4 px-4 rounded-md transition-all shadow-sm hover:shadow-md cursor-pointer"
+          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[70px] py-4 px-6 rounded-md transition-all shadow-sm hover:shadow-md cursor-pointer"
         >
           <div className="flex items-center gap-3">
             {selectedNode ? (
@@ -182,7 +183,12 @@ export function ProjectTreeSelector({
           <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[calc(100vw-2rem)] md:w-[600px] p-0" align="start" sideOffset={8}>
+      <PopoverContent 
+        className="p-0" 
+        align="start" 
+        sideOffset={8}
+        style={{ width: 'var(--radix-popover-trigger-width)' }}
+      >
         {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50">
           <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-1">
@@ -207,7 +213,7 @@ export function ProjectTreeSelector({
         </div>
 
         {/* Tree */}
-        <ScrollArea className="h-[450px]">
+        <ScrollArea className="h-[320px]">
           <div className="p-3 space-y-1">
             {isLoading ? (
               <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -231,22 +237,14 @@ export function ProjectTreeSelector({
           </div>
         </ScrollArea>
 
-        {/* Footer */}
-        <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-          <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-blue-500"></div>
-              <span>Cliente</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-purple-500"></div>
-              <span>Proyecto</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-green-500"></div>
-              <span>Tarea</span>
-            </div>
-          </div>
+        {/* Footer - Create Task Button */}
+        <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+          <Link href="/dashboard/projects">
+            <button className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md transition-colors">
+              <Plus className="h-4 w-4" />
+              <span>Crear nueva tarea</span>
+            </button>
+          </Link>
         </div>
       </PopoverContent>
     </Popover>

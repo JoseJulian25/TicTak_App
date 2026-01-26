@@ -124,9 +124,6 @@ export function useTimerActions() {
     resetTimer();
     setSelectedTaskId(null);
     
-    toast.info('Sesión descartada', {
-      description: 'El timer ha sido reiniciado',
-    });
   };
 
   return {

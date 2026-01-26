@@ -47,10 +47,11 @@ export function TimerView() {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-8 w-full max-w-md">
-          <Button
-            onClick={handleStartPause}
-            size="lg"
+        <div className="w-full max-w-md mb-8 pl-20">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+            <Button
+              onClick={handleStartPause}
+              size="lg"
             className={`flex-1 ${
               isRunning
                 ? "bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
@@ -94,6 +95,7 @@ export function TimerView() {
           >
             <RotateCcw className="h-5 w-5" />
           </Button>
+          </div>
         </div>
 
         {!selectedTaskId && (
