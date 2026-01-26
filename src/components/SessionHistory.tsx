@@ -3,6 +3,7 @@ import { Clock, Trash2, Loader2 } from "lucide-react";
 import { useSessionStore } from "@/stores/useSessionStore";
 import { useEnrichedSessions } from "@/hooks/useEnrichedSessions";
 import { formatDuration, getDayStart, getDayEnd } from "@/lib/time-utils";
+import { toast } from "sonner";
 
 /**
  * Componente para mostrar el historial de sesiones del día
@@ -37,9 +38,18 @@ export function SessionHistory() {
     });
   };
 
-  const handleDelete = (sessionId: string) => {
-    if (confirm('¿Estás seguro de eliminar esta sesión?')) {
-      deleteSession(sessionId);
+  const handleDelete = (sessionId: string, taskName: string) => {
+    if (confirm(`¿Estás seguro de eliminar la sesión de "${taskName}"?`)) {
+      const success = deleteSession(sessionId);
+      if (success) {
+        toast.success('Sesión eliminada', {
+          description: `La sesión de "${taskName}" ha sido eliminada`,
+        });
+      } else {
+        toast.error('Error al eliminar', {
+          description: 'No se pudo eliminar la sesión',
+        });
+      }
     }
   };
 
@@ -102,7 +112,7 @@ export function SessionHistory() {
                   
                   {/* Delete button */}
                   <button
-                    onClick={() => handleDelete(session.id)}
+                    onClick={() => handleDelete(session.id, session.taskName)}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
                     title="Eliminar sesión"
                   >
