@@ -13,9 +13,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProjectNode } from "@/components/ProjectTreeSelector";
+import { ProjectNode } from "@/types/projectNode";
+import { useAppInitialization } from "@/hooks/useAppInitialization";
+import { SkeletonProjects } from "@/components/skeletons/SkeletonProjects";
 
 export function ProjectsView() {
+  const { isInitialized } = useAppInitialization();
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1", "2"]));
   const [showDialog, setShowDialog] = useState(false);
   const [dialogType, setDialogType] = useState<"client" | "project" | "subtask">("client");
@@ -318,8 +321,12 @@ export function ProjectsView() {
     );
   };
 
+  if (!isInitialized) {
+    return <SkeletonProjects />;
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
       <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-2">

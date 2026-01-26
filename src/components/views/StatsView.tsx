@@ -1,8 +1,12 @@
 "use client";
 
 import { BarChart3, TrendingUp, Clock, Calendar, Users, Folder, FileText } from "lucide-react";
+import { useAppInitialization } from "@/hooks/useAppInitialization";
+import { SkeletonStats } from "@/components/skeletons/SkeletonStats";
 
 export function StatsView() {
+  const { isInitialized } = useAppInitialization();
+
   // Datos de ejemplo
   const stats = {
     todayHours: 2.5,
@@ -103,8 +107,12 @@ export function StatsView() {
     return 'bg-green-600 dark:bg-green-500';
   };
 
+  if (!isInitialized) {
+    return <SkeletonStats />;
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
           Estadísticas

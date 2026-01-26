@@ -3,10 +3,18 @@
 import { Bell, Moon, Globe, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useAppInitialization } from "@/hooks/useAppInitialization";
+import { SkeletonSettings } from "@/components/skeletons/SkeletonSettings";
 
 export function SettingsView() {
+  const { isInitialized } = useAppInitialization();
+
+  if (!isInitialized) {
+    return <SkeletonSettings />;
+  }
+
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
           Configuración
