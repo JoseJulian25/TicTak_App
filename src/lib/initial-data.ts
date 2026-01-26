@@ -31,28 +31,15 @@ function createInitialProject(clientId: string): Project {
     };
 }
 
-function createInitialTask(projectId: string): Task {
-    const id = generateId(PREFIXES_ID.TASK);
-    return {
-        id,
-        name: 'Trabajo en curso',
-        projectId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isArchived: false,
-        isCompleted: false
-    };
-}
 
 export function getInitialData(): InitialData {
     const client = createInitialClient();
     const project = createInitialProject(client.id);
-    const task = createInitialTask(project.id);
 
     return {
         clients: [client],   
         projects: [project],  
-        tasks: [task]         
+        tasks: []       
     };
 }
 

@@ -2,7 +2,9 @@ export const LOCAL_STORAGE_KEYS = {
     CLIENTS:'clients',
     PERSONALS: 'personals',
     PROJECTS: 'projects',
-    TASKS: 'tasks'
+    TASKS: 'tasks',
+    SESSIONS: 'sessions',
+    ACTIVE_SESSION: 'active_session',
 }
 
 export const PREFIXES_ID = {
