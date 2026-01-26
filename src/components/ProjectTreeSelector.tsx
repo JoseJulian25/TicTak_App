@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Building2, FolderKanban, CheckSquare, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight, Building2, FolderKanban, CheckSquare, Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -8,100 +7,33 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-export interface ProjectNode {
-  id: string;
-  name: string;
-  type: "client" | "project" | "subtask";
-  children?: ProjectNode[];
-  parentId?: string;
-  color?: string;
-}
+import { TreeNode } from "@/types";
+import { useProjectTreeState } from "@/hooks/useProjectTreeState";
 
 interface ProjectTreeSelectorProps {
-  projects: ProjectNode[];
-  selectedNode: ProjectNode | null;
-  onSelectNode: (node: ProjectNode) => void;
+  selectedTaskId: string | null;
+  onSelectTask: (taskId: string) => void;
 }
 
 export function ProjectTreeSelector({
-  projects,
-  selectedNode,
-  onSelectNode,
+  selectedTaskId,
+  onSelectTask,
 }: ProjectTreeSelectorProps) {
   const [open, setOpen] = useState(false);
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Hook personalizado con toda la lógica del árbol
+  const {
+    isLoading,
+    expandedNodes,
+    searchTerm,
+    selectedNode,
+    filteredProjects,
+    setSearchTerm,
+    toggleNode,
+    getNodePath,
+  } = useProjectTreeState(selectedTaskId);
 
-  const toggleNode = (nodeId: string) => {
-    const newExpanded = new Set(expandedNodes);
-    if (newExpanded.has(nodeId)) {
-      newExpanded.delete(nodeId);
-    } else {
-      newExpanded.add(nodeId);
-    }
-    setExpandedNodes(newExpanded);
-  };
-
-  const getNodePath = (node: ProjectNode | null): string => {
-    if (!node) return "Seleccionar proyecto";
-    
-    const parts: string[] = [node.name];
-    let current = node;
-    
-    const findParent = (nodeId: string | undefined, nodes: ProjectNode[]): ProjectNode | null => {
-      if (!nodeId) return null;
-      
-      for (const n of nodes) {
-        if (n.id === nodeId) return n;
-        if (n.children) {
-          const found = findParent(nodeId, n.children);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    
-    while (current.parentId) {
-      const parent = findParent(current.parentId, projects);
-      if (parent) {
-        parts.unshift(parent.name);
-        current = parent;
-      } else {
-        break;
-      }
-    }
-    
-    return parts.join(" > ");
-  };
-
-  // Función para filtrar nodos basado en búsqueda
-  const filterNodes = (nodes: ProjectNode[], term: string): ProjectNode[] => {
-    if (!term) return nodes;
-    
-    return nodes.reduce<ProjectNode[]>((acc, node) => {
-      const matchesSearch = node.name.toLowerCase().includes(term.toLowerCase());
-      const filteredChildren = node.children ? filterNodes(node.children, term) : [];
-      
-      if (matchesSearch || filteredChildren.length > 0) {
-        acc.push({
-          ...node,
-          children: filteredChildren.length > 0 ? filteredChildren : node.children,
-        });
-        
-        // Auto-expandir nodos que coinciden con búsqueda
-        if (filteredChildren.length > 0 || matchesSearch) {
-          setExpandedNodes(prev => new Set([...prev, node.id]));
-        }
-      }
-      
-      return acc;
-    }, []);
-  };
-
-  const filteredProjects = filterNodes(projects, searchTerm);
-
-  const getIcon = (node: ProjectNode, isExpanded: boolean, hasChildren: boolean) => {
+  const getIcon = (node: TreeNode, isExpanded: boolean, hasChildren: boolean) => {
     const iconClasses = "h-5 w-5";
     
     if (node.type === "client") {
@@ -113,11 +45,11 @@ export function ProjectTreeSelector({
     return <CheckSquare className={`${iconClasses} text-green-600 dark:text-green-400`} />;
   };
 
-  const renderNode = (node: ProjectNode, level: number = 0) => {
+  const renderNode = (node: TreeNode, level: number = 0) => {
     const isExpanded = expandedNodes.has(node.id);
-    const hasChildren = node.children && node.children.length > 0;
+    const hasChildren = !!(node.children && node.children.length > 0);
     const isSelected = selectedNode?.id === node.id;
-    const canSelect = node.type === "subtask";
+    const canSelect = node.type === "task";
 
     const getBgColor = () => {
       if (isSelected) return "bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-l-4 border-blue-500";
@@ -140,7 +72,7 @@ export function ProjectTreeSelector({
               toggleNode(node.id);
             }
             if (canSelect) {
-              onSelectNode(node);
+              onSelectTask(node.id);
               setOpen(false);
             }
           }}
@@ -222,11 +154,11 @@ export function ProjectTreeSelector({
           <div className="flex items-center gap-3">
             {selectedNode ? (
               <div className={`p-2 rounded-lg ${
-                selectedNode.type === "subtask"
+                selectedNode.type === "task"
                   ? "bg-green-100 dark:bg-green-950"
                   : "bg-gray-100 dark:bg-gray-800"
               }`}>
-                {selectedNode.type === "subtask" ? (
+                {selectedNode.type === "task" ? (
                   <CheckSquare className="h-6 w-6 text-green-600 dark:text-green-400" />
                 ) : (
                   <FolderKanban className="h-6 w-6 text-gray-600 dark:text-gray-400" />
@@ -277,12 +209,23 @@ export function ProjectTreeSelector({
         {/* Tree */}
         <ScrollArea className="h-[450px]">
           <div className="p-3 space-y-1">
-            {filteredProjects.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+                <p className="text-sm">Cargando proyectos...</p>
+              </div>
+            ) : filteredProjects.length > 0 ? (
               filteredProjects.map((node) => renderNode(node, 0))
-            ) : (
+            ) : searchTerm ? (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>No se encontraron resultados</p>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <FolderKanban className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No hay proyectos disponibles</p>
+                <p className="text-xs mt-2">Crea tu primer proyecto en Ajustes</p>
               </div>
             )}
           </div>
