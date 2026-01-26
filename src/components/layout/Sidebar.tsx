@@ -5,7 +5,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '../ui/button'
 
-export function Sidebar() {
+interface SidebarProps {
+  activeView: string;
+  onViewChange: (view: string) => void;
+}
+
+export function Sidebar({ activeView, onViewChange }: SidebarProps) {
   const pathname = usePathname()
 
   const menuItems = [
