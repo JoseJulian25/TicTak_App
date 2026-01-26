@@ -5,14 +5,14 @@ import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 
 interface TimerStore {
   activeSession: ActiveSession | null;
-  elapsedSeconds: number; // Tiempo transcurrido en segundos
+  elapsedSeconds: number;
   isRunning: boolean; 
   isPaused: boolean; 
 
   startTimer: (taskId: string) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
-  tick: () => void; // Incrementar segundos cada tick del interval
+  tick: () => void; 
   resetTimer: () => void;
   getCurrentTaskInfo: () => { taskId: string; elapsedSeconds: number } | null;
 }
@@ -31,20 +31,17 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
   startTimer: (taskId: string) => {
     const state = get();
 
-    // Validación: No permitir múltiples timers simultáneos
     if (state.activeSession && state.isRunning) {
       console.warn('Ya hay un timer activo. Pausa o guarda el actual primero.');
       return;
     }
 
-    // Crear nueva sesión activa
     const newSession: ActiveSession = {
       taskId,
       startTime: new Date(),
       totalPausedTime: 0,
     };
 
-    // Actualizar estado
     set({
       activeSession: newSession,
       elapsedSeconds: 0,
@@ -52,7 +49,6 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       isPaused: false,
     });
 
-    // 💾 Persistir en localStorage
     Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
       session: newSession,
       elapsedSeconds: 0,
@@ -83,7 +79,6 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       isPaused: true,
     });
 
-    // 💾 Persistir estado pausado
     Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
       session: updatedSession,
       elapsedSeconds: state.elapsedSeconds,
@@ -119,7 +114,6 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       isPaused: false,
     });
 
-    // 💾 Persistir
     Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
       session: updatedSession,
       elapsedSeconds: state.elapsedSeconds,
@@ -161,14 +155,12 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       isPaused: false,
     });
 
-    // 🗑️ Limpiar localStorage
     Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, null);
   },
 
   /**
    * Obtener información del timer actual
    * 
-   * Útil para componentes que necesitan saber qué tarea está siendo trackeada
    */
   getCurrentTaskInfo: () => {
     const state = get();
@@ -187,7 +179,6 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
 /**
  * Al cargar la app, intentar recuperar una sesión activa guardada
  * 
- * Esto permite que si el usuario recarga la página, no pierda su progreso
  */
 const recoverSession = () => {
   const saved = Storage.getItem<{
