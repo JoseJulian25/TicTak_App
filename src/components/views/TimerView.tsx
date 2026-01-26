@@ -7,18 +7,16 @@ import { CircularTimer } from "@/components/CircularTimer";
 import { ProjectTreeSelector } from "@/components/ProjectTreeSelector";
 import { SessionSummary } from "@/components/SessionSummary";
 import { SessionHistory } from "@/components/SessionHistory";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTimerStore } from "@/stores/useTimerStore";
 import { useTimerInterval } from "@/hooks/useTimerInterval";
+import { saveActiveSession } from "@/lib/session-manager";
+import { useTaskStore } from "@/stores/useTaskStore";
+import { useProjectStore } from "@/stores/useProjectStore";
+import { UNNAMED_TASK_ID } from "@/lib/constants";
+import { toast } from "sonner";
 
 export function TimerView() {
   // Estados del timer desde el store
@@ -26,6 +24,13 @@ export function TimerView() {
   const startTimer = useTimerStore((state) => state.startTimer);
   const pauseTimer = useTimerStore((state) => state.pauseTimer);
   const resumeTimer = useTimerStore((state) => state.resumeTimer);
+  
+  const addTask = useTaskStore((state) => state.addTask);
+  
+  // Obtener proyecto "General" (buscar por nombre)
+  const generalProject = useProjectStore((state) => 
+    state.projects.find(p => p.name === "General" && !p.isArchived)
+  );
   
   // Hook que maneja el interval automático
   const { elapsedSeconds, isRunning, isPaused } = useTimerInterval();
@@ -35,17 +40,110 @@ export function TimerView() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
 
-  // Placeholder para funciones de control (se implementarán en tarea 5.8)
+  /**
+   * Manejar inicio/pausa/reanudación del timer
+   */
   const handleStartPause = () => {
-    // TODO: Implementar en tarea 5.8
+
+    if (isRunning) {
+      pauseTimer();
+      return;
+    }
+
+    if (isPaused && activeSession) {
+      resumeTimer();
+      return;
+    }
+    
+    // Si no hay sesión activa → iniciar nueva
+    // Usar tarea seleccionada o ID temporal si no hay ninguna
+    const taskIdToUse = selectedTaskId || UNNAMED_TASK_ID;
+    startTimer(taskIdToUse);
   };
 
+  /**
+   * Guardar la sesión actual
+   */
   const handleSave = () => {
-    // TODO: Implementar en tarea 5.8
+    if (elapsedSeconds === 0) return;
+    
+    // Si el timer está sin tarea real (usando ID temporal), mostrar diálogo
+    if (activeSession?.taskId === UNNAMED_TASK_ID) {
+      setShowSaveDialog(true);
+      pauseTimer(); // Pausar mientras nombra la tarea
+      return;
+    }
+    
+    // Guardar sesión con la tarea seleccionada
+    const result = saveActiveSession();
+    
+    if (result.success) {
+      toast.success('Sesión guardada correctamente', {
+        description: `${Math.floor(result.session.duration / 60)} minutos registrados`,
+      });
+      // Limpiar selección
+      setSelectedTaskId(null);
+    } else {
+      toast.error('Error al guardar', {
+        description: result.error,
+      });
+    }
   };
 
+  /**
+   * Guardar sesión con nueva tarea (desde el diálogo)
+   */
   const handleSaveWithNewTask = () => {
-    // TODO: Implementar en tarea 5.8
+    if (!newTaskName.trim()) return;
+    
+    try {
+      // Validar que exista el proyecto General
+      if (!generalProject) {
+        toast.error('Proyecto no encontrado', {
+          description: 'No se encontró el proyecto "General". Por favor crea uno en Ajustes.',
+        });
+        return;
+      }
+      
+      // Crear nueva tarea en Personal > General
+      const newTask = addTask({
+        name: newTaskName.trim(),
+        projectId: generalProject.id,
+      });
+      
+      // Actualizar el activeSession con el taskId real
+      if (activeSession) {
+        useTimerStore.setState((state) => ({
+          ...state,
+          activeSession: state.activeSession
+            ? { ...state.activeSession, taskId: newTask.id }
+            : state.activeSession,
+        }));
+      }
+      
+      // Guardar sesión con la tarea real
+      const result = saveActiveSession();
+      
+      if (result.success) {
+        toast.success('Tarea creada y sesión guardada', {
+          description: `"${newTask.name}" - ${Math.floor(result.session.duration / 60)} minutos`,
+        });
+        
+        // Resetear todo
+        setShowSaveDialog(false);
+        setNewTaskName('');
+        setSelectedTaskId(null);
+      } else {
+        toast.error('Error al guardar', {
+          description: result.error,
+        });
+      }
+    } catch (error) {
+      console.error('Error al crear tarea:', error);
+      toast.error('Error al crear la tarea', {
+        description: 'Ocurrió un problema al crear la nueva tarea. Intenta de nuevo.',
+      });
+    }
   };
 
   return (
@@ -79,6 +177,11 @@ export function TimerView() {
               <>
                 <Pause className="h-5 w-5 mr-2" />
                 Pausar
+              </>
+            ) : isPaused ? (
+              <>
+                <Play className="h-5 w-5 mr-2" />
+                Reanudar
               </>
             ) : (
               <>

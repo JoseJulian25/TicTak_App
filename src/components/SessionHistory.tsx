@@ -9,7 +9,6 @@ import { toast } from "sonner";
  * Componente para mostrar el historial de sesiones del día
  * 
  * Obtiene sesiones de hoy desde el store y las enriquece
- * con información completa (nombres de cliente, proyecto, tarea)
  */
 export function SessionHistory() {
   // Obtener todas las sesiones del store

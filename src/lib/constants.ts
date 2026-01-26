@@ -14,3 +14,6 @@ export const PREFIXES_ID = {
 }
 
 export const MIN_SESSION_DURATION_SECONDS = 1;
+
+// ID temporal para timers sin tarea asignada
+export const UNNAMED_TASK_ID = '__unnamed__';

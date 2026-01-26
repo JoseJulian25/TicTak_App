@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppInitializer } from "@/components/AppInitializer";
+import { Toaster } from "sonner";
 
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({children,}: Readonly<{children: React.ReactN
         <AppInitializer>
           {children}
         </AppInitializer>
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );
