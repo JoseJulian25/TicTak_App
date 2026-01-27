@@ -74,11 +74,11 @@ export function SessionHistory() {
           </div>
         ) : (
           <ScrollArea className="h-[400px]">
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            <div>
               {enrichedSessions.map((session) => (
               <div
                 key={session.id}
-                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex flex-col sm:flex-row items-start sm:items-center gap-4"
+                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex flex-col sm:flex-row items-start sm:items-center gap-4 border-b border-gray-200 dark:border-gray-700"
               >
                 {/* Project indicator with color */}
                 <div 

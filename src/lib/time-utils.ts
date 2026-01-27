@@ -32,11 +32,15 @@ export function formatDuration(totalSeconds: number): string {
 }
 
 export function getDayStart(date: Date): Date {
-    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0));
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
 }
 
 export function getDayEnd(date: Date): Date {
-    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
+    const d = new Date(date);
+    d.setHours(23, 59, 59, 999);
+    return d;
 }
 
 export function isToday(date: Date): boolean {
