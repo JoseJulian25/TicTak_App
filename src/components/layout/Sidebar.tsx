@@ -5,21 +5,17 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '../ui/button'
 
-interface SidebarProps {
-  activeView: string;
-  onViewChange: (view: string) => void;
-}
+export function Sidebar() {
 
-export function Sidebar({ activeView, onViewChange }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
+
+  const isActive = (href: string) => pathname.includes(href)
 
   const menuItems = [
     { id: 'timer', label: 'Temporizador', icon: Clock, href: '/dashboard/timer' },
     { id: 'stats', label: 'Estadísticas', icon: BarChart3, href: '/dashboard/stats' },
     { id: 'projects', label: 'Proyectos', icon: Folder, href: '/dashboard/projects' },
   ]
-
-  const isActive = (href: string) => pathname.startsWith(href)
 
   return (
     <aside className="hidden md:flex w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex-col">
@@ -48,15 +44,14 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
       <nav className="flex-1 p-4">
         <div className="space-y-1">
           {menuItems.map((item) => {
-            const Icon = item.icon
-            const active = isActive(item.href)
+            const Icon = item.icon;
 
             return (
               <Link key={item.id} href={item.href}>
                 <Button
                   variant="ghost"
                   className={`w-full justify-start gap-3 ${
-                    active
+                     isActive(item.id)
                       ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
@@ -91,7 +86,7 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
               variant="ghost"
               size="icon"
               className={`shrink-0 ${
-                isActive('/dashboard/settings')
+                isActive('settings')
                   ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
                   : 'text-gray-500 dark:text-gray-400'
               }`}

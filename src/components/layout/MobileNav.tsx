@@ -4,15 +4,15 @@ import { Clock, BarChart3, Folder, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
-interface MobileNavProps {
-  activeView: string;
-  onViewChange: (view: string) => void;
-}
-
-export function MobileNav({ activeView, onViewChange }: MobileNavProps) {
+export function MobileNav() {
   const scrollDirection = useScrollDirection();
   const headerRef = useRef<HTMLDivElement>(null);
+
+  const pathname = usePathname();
+  const isActive = (href: string) => pathname.includes(href)
 
   useEffect(() => {
     if (!headerRef.current) return;
@@ -25,10 +25,10 @@ export function MobileNav({ activeView, onViewChange }: MobileNavProps) {
   }, [scrollDirection]);
 
   const menuItems = [
-    { id: "timer", label: "Temporizador", icon: Clock },
-    { id: "stats", label: "Estadísticas", icon: BarChart3 },
-    { id: "projects", label: "Proyectos", icon: Folder },
-  ];
+    { id: 'timer', label: 'Temporizador', icon: Clock, href: '/dashboard/timer' },
+    { id: 'stats', label: 'Estadísticas', icon: BarChart3, href: '/dashboard/stats' },
+    { id: 'projects', label: 'Proyectos', icon: Folder, href: '/dashboard/projects' },
+  ]
 
   return (
     <>
@@ -63,18 +63,20 @@ export function MobileNav({ activeView, onViewChange }: MobileNavProps) {
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
               <span className="text-white text-sm font-medium">U</span>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onViewChange("settings")}
-              className={`h-8 w-8 ${
-                activeView === "settings"
-                  ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
-                  : "text-gray-600 dark:text-gray-400"
-              }`}
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
+            <Link href='/dashboard/settings'>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 ${
+                  isActive('settings')
+                    ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </Link>
+            
           </div>
         </div>
       </div>
@@ -84,22 +86,23 @@ export function MobileNav({ activeView, onViewChange }: MobileNavProps) {
         <nav className="flex items-center justify-around p-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeView === item.id;
-            
+ 
             return (
-              <Button
-                key={item.id}
-                onClick={() => onViewChange(item.id)}
-                variant="ghost"
-                size="icon"
-                className={`h-14 w-14 rounded-xl flex flex-col items-center justify-center gap-1 ${
-                  isActive
-                    ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
-                    : "text-gray-600 dark:text-gray-400"
-                }`}
-              >
-                <Icon className="h-6 w-6" />
-              </Button>
+              <Link key={item.id} href={item.href}>
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  size="icon"
+                  className={`h-14 w-14 rounded-xl flex flex-col items-center justify-center gap-1 ${
+                    isActive(item.id)
+                      ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
+                      : "text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  <Icon className="h-6 w-6" />
+                </Button>
+              </Link>
+              
             );
           })}
         </nav>
