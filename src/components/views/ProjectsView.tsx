@@ -13,7 +13,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProjectNode } from "@/components/ProjectTreeSelector";
+
+// Definición temporal de ProjectNode para este módulo
+interface ProjectNode {
+  id: string;
+  name: string;
+  type: "client" | "project" | "subtask";
+  children?: ProjectNode[];
+  parentId?: string;
+}
 
 export function ProjectsView() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1", "2"]));
@@ -157,7 +165,7 @@ export function ProjectsView() {
   const countSubtasks = (node: ProjectNode): number => {
     if (node.type === "subtask") return 1;
     if (!node.children) return 0;
-    return node.children.reduce((acc, child) => acc + countSubtasks(child), 0);
+    return node.children.reduce((acc: number, child: ProjectNode) => acc + countSubtasks(child), 0);
   };
 
   const openAddDialog = (type: "client" | "project" | "subtask", parentId?: string) => {
@@ -169,7 +177,7 @@ export function ProjectsView() {
   const filterProjects = (nodes: ProjectNode[], query: string): ProjectNode[] => {
     if (!query.trim()) return nodes;
     
-    return nodes.reduce((acc, node) => {
+    return nodes.reduce((acc: ProjectNode[], node: ProjectNode) => {
       const matchesDirectly = node.name.toLowerCase().includes(query.toLowerCase());
       const filteredChildren = node.children 
         ? filterProjects(node.children, query)
