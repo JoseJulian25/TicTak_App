@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useTimerStore } from "@/stores/useTimerStore";
-import { useTimerInterval } from "@/hooks/useTimerInterval";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { useProjectStore } from "@/stores/useProjectStore";
 import { saveActiveSession } from "@/lib/session-manager";
@@ -10,6 +9,9 @@ import { toast } from "sonner";
 
 export function useTimerActions() {
   const activeSession = useTimerStore((state) => state.activeSession);
+  const elapsedSeconds = useTimerStore((state) => state.elapsedSeconds);
+  const isRunning = useTimerStore((state) => state.isRunning);
+  const isPaused = useTimerStore((state) => state.isPaused);
   const startTimer = useTimerStore((state) => state.startTimer);
   const pauseTimer = useTimerStore((state) => state.pauseTimer);
   const resumeTimer = useTimerStore((state) => state.resumeTimer);
@@ -20,8 +22,6 @@ export function useTimerActions() {
   const generalProject = useProjectStore((state) => 
     state.projects.find(p => p.name === "General" && !p.isArchived)
   );
-  
-  const { elapsedSeconds, isRunning, isPaused } = useTimerInterval();
   
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);

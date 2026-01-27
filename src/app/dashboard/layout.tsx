@@ -3,6 +3,7 @@
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { usePathname, useRouter } from "next/navigation";
+import { useTimerInterval } from "@/hooks/useTimerInterval";
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,9 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  
+  // Mantener el intervalo del timer activo globalmente
+  useTimerInterval();
 
   const getActiveView = () => {
     if (pathname.includes("/stats")) return "stats";
