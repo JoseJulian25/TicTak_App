@@ -1,20 +1,31 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Clock, Trash2, Loader2 } from "lucide-react";
 import { useSessionStore } from "@/stores/useSessionStore";
 import { useEnrichedSessions } from "@/hooks/useEnrichedSessions";
 import { formatDuration, getDayStart, getDayEnd } from "@/lib/time-utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 /**
  * Componente para mostrar el historial de sesiones del día
- * 
- * Obtiene sesiones de hoy desde el store y las enriquece
  */
 export function SessionHistory() {
   // Obtener todas las sesiones del store
   const sessions = useSessionStore((state) => state.sessions);
   const deleteSession = useSessionStore((state) => state.deleteSession);
+  
+  // Estado para el diálogo de confirmación
+  const [sessionToDelete, setSessionToDelete] = useState<{ id: string; name: string; duration: number } | null>(null);
   
   // Calcular sesiones de hoy con useMemo y ordenar cronológicamente (más antigua primero)
   const sessionsToday = useMemo(() => {
@@ -28,8 +39,8 @@ export function SessionHistory() {
         return sessionDate >= dayStart && sessionDate <= dayEnd;
       })
       .sort((a, b) => {
-        // Ordenar por startTime ascendente (más antigua primero)
-        return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+        // Más reciente primero
+        return new Date(b.startTime).getTime() - new Date(a.startTime).getTime();
       });
   }, [sessions]);
   
@@ -43,19 +54,25 @@ export function SessionHistory() {
     });
   };
 
-  const handleDelete = (sessionId: string, taskName: string) => {
-    if (confirm(`¿Estás seguro de eliminar la sesión de "${taskName}"?`)) {
-      const success = deleteSession(sessionId);
-      if (success) {
-        toast.success('Sesión eliminada', {
-          description: `La sesión de "${taskName}" ha sido eliminada`,
-        });
-      } else {
-        toast.error('Error al eliminar', {
-          description: 'No se pudo eliminar la sesión',
-        });
-      }
+  const handleDelete = (sessionId: string, taskName: string, duration: number) => {
+    setSessionToDelete({ id: sessionId, name: taskName, duration });
+  };
+
+  const confirmDelete = () => {
+    if (!sessionToDelete) return;
+    
+    const success = deleteSession(sessionToDelete.id);
+    if (success) {
+      toast.success('Sesión eliminada', {
+        description: `La sesión de "${sessionToDelete.name}" ha sido eliminada`,
+      });
+    } else {
+      toast.error('Error al eliminar', {
+        description: 'No se pudo eliminar la sesión',
+      });
     }
+    
+    setSessionToDelete(null);
   };
 
   return (
@@ -118,7 +135,7 @@ export function SessionHistory() {
                   
                   {/* Delete button */}
                   <button
-                    onClick={() => handleDelete(session.id, session.taskName)}
+                    onClick={() => handleDelete(session.id, session.taskName, session.duration)}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
                     title="Eliminar sesión"
                   >
@@ -131,6 +148,29 @@ export function SessionHistory() {
           </ScrollArea>
         )}
       </div>
+      
+      {/* Alert Dialog para confirmación de eliminación */}
+      <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar sesión?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás a punto de eliminar la sesión de "{sessionToDelete?.name}" 
+              ({sessionToDelete?.duration ? formatDuration(sessionToDelete.duration) : '0s'}).
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

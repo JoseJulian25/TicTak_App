@@ -7,9 +7,20 @@ import { ProjectTreeSelector } from "@/components/ProjectTreeSelector";
 import { SessionSummary } from "@/components/SessionSummary";
 import { SessionHistory } from "@/components/SessionHistory";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTimerActions } from "@/hooks/useTimerActions";
+import { formatDuration } from "@/lib/time-utils";
 
 export function TimerView() {
   const {
@@ -17,6 +28,8 @@ export function TimerView() {
     setSelectedTaskId,
     showSaveDialog,
     setShowSaveDialog,
+    showResetDialog,
+    setShowResetDialog,
     newTaskName,
     setNewTaskName,
     elapsedSeconds,
@@ -28,6 +41,7 @@ export function TimerView() {
     handleSaveWithNewTask,
     handleCancelSave,
     handleReset,
+    confirmReset,
   } = useTimerActions();
 
   return (
@@ -168,6 +182,28 @@ export function TimerView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Descartar tiempo sin guardar?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tienes {formatDuration(elapsedSeconds)} sin guardar. Si reinicias el temporizador,
+              este tiempo se perderá permanentemente. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmReset}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Descartar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
