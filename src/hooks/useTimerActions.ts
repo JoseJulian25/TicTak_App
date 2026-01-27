@@ -25,6 +25,7 @@ export function useTimerActions() {
   
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
 
   // Efecto para actualizar el taskId de la sesión activa cuando se selecciona una tarea
@@ -151,7 +152,18 @@ export function useTimerActions() {
   const handleReset = () => {
     if (elapsedSeconds === 0 && !activeSession) return;
     
+    // Si hay más de 5 minutos (300 segundos), pedir confirmación
+    if (elapsedSeconds >= 300) {
+      setShowResetDialog(true);
+      return;
+    }
+    
     resetTimer();
+  };
+  
+  const confirmReset = () => {
+    resetTimer();
+    setShowResetDialog(false);
   };
 
   return {
@@ -160,6 +172,8 @@ export function useTimerActions() {
     setSelectedTaskId,
     showSaveDialog,
     setShowSaveDialog,
+    showResetDialog,
+    setShowResetDialog,
     newTaskName,
     setNewTaskName,
     elapsedSeconds,
@@ -173,5 +187,6 @@ export function useTimerActions() {
     handleSaveWithNewTask,
     handleCancelSave,
     handleReset,
+    confirmReset,
   };
 }
