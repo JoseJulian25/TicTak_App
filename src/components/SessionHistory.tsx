@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo } from "react";
 import { Clock, Trash2, Loader2 } from "lucide-react";
 import { useSessionStore } from "@/stores/useSessionStore";
 import { useEnrichedSessions } from "@/hooks/useEnrichedSessions";
@@ -18,14 +18,18 @@ import { toast } from "sonner";
 
 /**
  * Componente para mostrar el historial de sesiones del día
+ * 
+ * Optimizado con React.memo para evitar re-renders innecesarios
+ * cuando el timer hace tick cada segundo.
  */
-export function SessionHistory() {
+export const SessionHistory = memo(function SessionHistory() {
   // Obtener todas las sesiones del store
   const sessions = useSessionStore((state) => state.sessions);
   const deleteSession = useSessionStore((state) => state.deleteSession);
   
   // Estado para el diálogo de confirmación
   const [sessionToDelete, setSessionToDelete] = useState<{ id: string; name: string; duration: number } | null>(null);
+  console.log('Renderizando SessionHistory');
   
   // Calcular sesiones de hoy con useMemo y ordenar cronológicamente (más antigua primero)
   const sessionsToday = useMemo(() => {
@@ -173,4 +177,4 @@ export function SessionHistory() {
       </AlertDialog>
     </div>
   );
-}
+});

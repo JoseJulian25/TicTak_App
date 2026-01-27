@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { ChevronDown, ChevronRight, Building2, FolderKanban, CheckSquare, Search, Loader2, Plus } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,10 @@ interface ProjectTreeSelectorProps {
   onSelectTask: (taskId: string) => void;
 }
 
-export function ProjectTreeSelector({
+/**
+ * Selector de proyectos en forma de árbol jerárquico
+ */
+export const ProjectTreeSelector = memo(function ProjectTreeSelector({
   selectedTaskId,
   onSelectTask,
 }: ProjectTreeSelectorProps) {
@@ -250,4 +253,4 @@ export function ProjectTreeSelector({
       </PopoverContent>
     </Popover>
   );
-}
+});

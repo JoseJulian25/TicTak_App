@@ -1,16 +1,15 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { Clock } from "lucide-react";
 import { useSessionStore } from "@/stores/useSessionStore";
 import { getDayStart, getDayEnd } from "@/lib/time-utils";
 
 /**
  * Componente para mostrar resumen del trabajo de hoy
- * 
  */
-export function SessionSummary() {
+export const SessionSummary = memo(function SessionSummary() {
   // Obtener todas las sesiones del store
   const sessions = useSessionStore((state) => state.sessions);
-  
+
   // Calcular sesiones de hoy con useMemo para evitar recalcular en cada render
   const sessionsToday = useMemo(() => {
     const today = new Date();
@@ -45,4 +44,4 @@ export function SessionSummary() {
       </span>
     </div>
   );
-}
+});
