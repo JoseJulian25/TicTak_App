@@ -1,7 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, MoreVertical, Clock, ChevronDown, ChevronRight, Folder, FolderOpen, FileText, Search, TrendingUp, BarChart3, X } from "lucide-react";
+import { 
+  Plus, 
+  MoreHorizontal, 
+  Clock, 
+  ChevronDown, 
+  ChevronRight, 
+  Building2, 
+  FolderKanban, 
+  CheckSquare, 
+  Search, 
+  X,
+  Pencil,
+  Trash2,
+  Archive
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,41 +25,66 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// Definición temporal de ProjectNode para este módulo
 interface ProjectNode {
   id: string;
   name: string;
-  type: "client" | "project" | "subtask";
+  type: "client" | "project" | "task";
   children?: ProjectNode[];
   parentId?: string;
+  // Mock data para métricas
+  totalHours?: number;
+  hoursThisWeek?: number;
+  tasksCompleted?: number;
+  totalTasks?: number;
+  lastActivity?: string;
 }
 
 export function ProjectsView() {
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1", "2"]));
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["personal", "1", "1-1"]));
   const [showDialog, setShowDialog] = useState(false);
-  const [dialogType, setDialogType] = useState<"client" | "project" | "subtask">("client");
+  const [dialogType, setDialogType] = useState<"client" | "project" | "task">("client");
   const [selectedParentId, setSelectedParentId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedItem, setSelectedItem] = useState<{
-    node: ProjectNode;
-    type: "client" | "project" | "subtask";
-  } | null>(null);
 
   const projects: ProjectNode[] = [
     {
       id: "personal",
       name: "Personal",
       type: "client",
+      totalHours: 45,
+      hoursThisWeek: 8,
+      lastActivity: "Hace 2h",
       children: [
         {
           id: "personal-general",
           name: "General",
           type: "project",
           parentId: "personal",
-          children: [],
+          totalHours: 45,
+          hoursThisWeek: 8,
+          tasksCompleted: 3,
+          totalTasks: 5,
+          lastActivity: "Hace 2h",
+          children: [
+            {
+              id: "personal-general-1",
+              name: "Organizar documentos",
+              type: "task",
+              parentId: "personal-general",
+              totalHours: 2,
+              lastActivity: "Ayer",
+            },
+          ],
         },
       ],
     },
@@ -53,30 +92,52 @@ export function ProjectsView() {
       id: "1",
       name: "BanReservas",
       type: "client",
+      totalHours: 127,
+      hoursThisWeek: 24,
+      lastActivity: "Hace 30min",
       children: [
         {
           id: "1-1",
           name: "Sistema de Pagos",
           type: "project",
           parentId: "1",
+          totalHours: 85,
+          hoursThisWeek: 18,
+          tasksCompleted: 2,
+          totalTasks: 4,
+          lastActivity: "Hace 30min",
           children: [
             {
               id: "1-1-1",
               name: "Implementar API de transacciones",
-              type: "subtask",
+              type: "task",
               parentId: "1-1",
+              totalHours: 32,
+              lastActivity: "Hace 30min",
             },
             {
               id: "1-1-2",
               name: "Diseñar UI de pagos",
-              type: "subtask",
+              type: "task",
               parentId: "1-1",
+              totalHours: 18,
+              lastActivity: "Hace 2 días",
             },
             {
               id: "1-1-3",
               name: "Pruebas de integración",
-              type: "subtask",
+              type: "task",
               parentId: "1-1",
+              totalHours: 12,
+              lastActivity: "Ayer",
+            },
+            {
+              id: "1-1-4",
+              name: "Documentación técnica",
+              type: "task",
+              parentId: "1-1",
+              totalHours: 5,
+              lastActivity: "Hace 3 días",
             },
           ],
         },
@@ -85,18 +146,35 @@ export function ProjectsView() {
           name: "App Móvil",
           type: "project",
           parentId: "1",
+          totalHours: 42,
+          hoursThisWeek: 6,
+          tasksCompleted: 1,
+          totalTasks: 3,
+          lastActivity: "Ayer",
           children: [
             {
               id: "1-2-1",
               name: "Login y autenticación",
-              type: "subtask",
+              type: "task",
               parentId: "1-2",
+              totalHours: 15,
+              lastActivity: "Ayer",
             },
             {
               id: "1-2-2",
               name: "Dashboard principal",
-              type: "subtask",
+              type: "task",
               parentId: "1-2",
+              totalHours: 20,
+              lastActivity: "Hace 4 días",
+            },
+            {
+              id: "1-2-3",
+              name: "Notificaciones push",
+              type: "task",
+              parentId: "1-2",
+              totalHours: 7,
+              lastActivity: "Hace 1 semana",
             },
           ],
         },
@@ -106,24 +184,36 @@ export function ProjectsView() {
       id: "2",
       name: "Tech Corp",
       type: "client",
+      totalHours: 68,
+      hoursThisWeek: 12,
+      lastActivity: "Hace 4h",
       children: [
         {
           id: "2-1",
           name: "Website Redesign",
           type: "project",
           parentId: "2",
+          totalHours: 68,
+          hoursThisWeek: 12,
+          tasksCompleted: 1,
+          totalTasks: 2,
+          lastActivity: "Hace 4h",
           children: [
             {
               id: "2-1-1",
               name: "Wireframes y mockups",
-              type: "subtask",
+              type: "task",
               parentId: "2-1",
+              totalHours: 28,
+              lastActivity: "Hace 1 semana",
             },
             {
               id: "2-1-2",
               name: "Desarrollo frontend",
-              type: "subtask",
+              type: "task",
               parentId: "2-1",
+              totalHours: 40,
+              lastActivity: "Hace 4h",
             },
           ],
         },
@@ -133,18 +223,28 @@ export function ProjectsView() {
       id: "3",
       name: "Freelance",
       type: "client",
+      totalHours: 23,
+      hoursThisWeek: 4,
+      lastActivity: "Hace 2 días",
       children: [
         {
           id: "3-1",
           name: "Landing Page Cliente X",
           type: "project",
           parentId: "3",
+          totalHours: 23,
+          hoursThisWeek: 4,
+          tasksCompleted: 0,
+          totalTasks: 1,
+          lastActivity: "Hace 2 días",
           children: [
             {
               id: "3-1-1",
               name: "Diseño responsive",
-              type: "subtask",
+              type: "task",
               parentId: "3-1",
+              totalHours: 23,
+              lastActivity: "Hace 2 días",
             },
           ],
         },
@@ -162,13 +262,7 @@ export function ProjectsView() {
     setExpandedNodes(newExpanded);
   };
 
-  const countSubtasks = (node: ProjectNode): number => {
-    if (node.type === "subtask") return 1;
-    if (!node.children) return 0;
-    return node.children.reduce((acc: number, child: ProjectNode) => acc + countSubtasks(child), 0);
-  };
-
-  const openAddDialog = (type: "client" | "project" | "subtask", parentId?: string) => {
+  const openAddDialog = (type: "client" | "project" | "task", parentId?: string) => {
     setDialogType(type);
     setSelectedParentId(parentId || "");
     setShowDialog(true);
@@ -196,129 +290,198 @@ export function ProjectsView() {
 
   const filteredProjects = filterProjects(projects, searchQuery);
 
-  const generateStats = (node: ProjectNode) => {
-    return {
-      totalHours: Math.floor(Math.random() * 50) + 10,
-      thisWeek: Math.floor(Math.random() * 15) + 2,
-      thisMonth: Math.floor(Math.random() * 40) + 5,
-      tasksCompleted: node.type === "subtask" ? 1 : countSubtasks(node),
-      activeDays: Math.floor(Math.random() * 20) + 5,
-    };
+  const getIcon = (type: "client" | "project" | "task") => {
+    switch (type) {
+      case "client":
+        return <Building2 className="h-4 w-4" />;
+      case "project":
+        return <FolderKanban className="h-4 w-4" />;
+      case "task":
+        return <CheckSquare className="h-4 w-4" />;
+    }
+  };
+
+  const getIconColor = (type: "client" | "project" | "task") => {
+    switch (type) {
+      case "client":
+        return "text-blue-500";
+      case "project":
+        return "text-purple-500";
+      case "task":
+        return "text-green-500";
+    }
+  };
+
+  const countChildren = (node: ProjectNode): { projects: number; tasks: number } => {
+    let projects = 0;
+    let tasks = 0;
+    
+    if (node.children) {
+      node.children.forEach(child => {
+        if (child.type === "project") {
+          projects++;
+          const subCounts = countChildren(child);
+          tasks += subCounts.tasks;
+        } else if (child.type === "task") {
+          tasks++;
+        }
+      });
+    }
+    
+    return { projects, tasks };
   };
 
   const renderNode = (node: ProjectNode, level: number = 0) => {
     const isExpanded = expandedNodes.has(node.id);
     const hasChildren = node.children && node.children.length > 0;
-    const subtaskCount = countSubtasks(node);
+    const counts = countChildren(node);
 
-    const getIcon = () => {
-      if (node.type === "subtask") {
-        return <FileText className="h-5 w-5 text-white" />;
-      }
-      if (hasChildren && isExpanded) {
-        return <FolderOpen className="h-5 w-5 text-white" />;
-      }
-      return <Folder className="h-5 w-5 text-white" />;
-    };
-
-    const getBgColor = () => {
-      if (node.type === "client") return "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900";
-      if (node.type === "project") return "bg-white dark:bg-gray-800";
-      return "bg-gray-50 dark:bg-gray-800/50";
-    };
+    // Padding progresivo según nivel
+    const paddingLeft = level === 0 ? 12 : level === 1 ? 32 : 52;
 
     return (
-      <div key={node.id} style={{ marginLeft: level > 0 ? "24px" : "0" }}>
+      <div key={node.id}>
+        {/* Node Item */}
         <div
-          className={`${getBgColor()} rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-3`}
+          className={`
+            group flex items-center gap-2 py-2.5 px-3 
+            hover:bg-gray-100 dark:hover:bg-gray-800 
+            border-b border-gray-100 dark:border-gray-800
+            transition-colors cursor-pointer
+            ${level === 0 ? 'bg-gray-50/50 dark:bg-gray-900/50' : ''}
+          `}
+          style={{ paddingLeft: `${paddingLeft}px` }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              {hasChildren && (
-                <button
-                  onClick={() => toggleNode(node.id)}
-                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                  )}
-                </button>
+          {/* Expand/Collapse */}
+          {hasChildren ? (
+            <button
+              onClick={() => toggleNode(node.id)}
+              className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded shrink-0"
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-gray-500" />
               )}
-              {!hasChildren && <div className="w-7" />}
+            </button>
+          ) : (
+            <div className="w-5" />
+          )}
+
+          {/* Icon */}
+          <span className={`shrink-0 ${getIconColor(node.type)}`}>
+            {getIcon(node.type)}
+          </span>
+
+          {/* Name & Info */}
+          <div className="flex-1 min-w-0 flex items-center gap-3">
+            <span className={`
+              truncate
+              ${level === 0 ? 'font-semibold text-gray-900 dark:text-gray-100' : ''}
+              ${level === 1 ? 'font-medium text-gray-800 dark:text-gray-200' : ''}
+              ${level === 2 ? 'text-gray-700 dark:text-gray-300' : ''}
+            `}>
+              {node.name}
+            </span>
+
+            {/* Metadata inline */}
+            <div className="hidden sm:flex items-center gap-3 text-xs text-gray-500 shrink-0">
+              {/* Child counts for clients and projects */}
+              {node.type === "client" && counts.projects > 0 && (
+                <span className="flex items-center gap-1">
+                  <FolderKanban className="h-3 w-3" />
+                  {counts.projects}
+                </span>
+              )}
               
-              <div className={`w-12 h-12 rounded-xl ${
-                node.type === "client" 
-                  ? "bg-gradient-to-br from-blue-500 to-blue-600" 
-                  : node.type === "project"
-                  ? "bg-gradient-to-br from-purple-500 to-purple-600"
-                  : "bg-gradient-to-br from-green-500 to-green-600"
-              } flex items-center justify-center shadow-md flex-shrink-0`}>
-                {getIcon()}
-              </div>
-
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className={`${
-                    node.type === "client" ? "text-lg" : "text-base"
-                  } font-semibold text-gray-900 dark:text-gray-100`}>
-                    {node.name}
-                  </h3>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    {node.type === "client" ? "Cliente" : node.type === "project" ? "Proyecto" : "Tarea"}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-4 mt-1">
-                  {node.type !== "subtask" && (
-                    <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                      <FileText className="h-4 w-4" />
-                      <span>{subtaskCount} {subtaskCount === 1 ? "tarea" : "tareas"}</span>
-                    </div>
-                  )}
-                  {node.type === "subtask" && (
-                    <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                      <Clock className="h-4 w-4" />
-                      <span>2.5h este mes</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {node.type !== "subtask" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openAddDialog(
-                    node.type === "client" ? "project" : "subtask",
-                    node.id
-                  )}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  {node.type === "client" ? "Proyecto" : "Tarea"}
-                </Button>
+              {(node.type === "client" || node.type === "project") && counts.tasks > 0 && (
+                <span className="flex items-center gap-1">
+                  <CheckSquare className="h-3 w-3" />
+                  {counts.tasks}
+                </span>
               )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0"
-                onClick={() => setSelectedItem({ node, type: node.type })}
-              >
-                <BarChart3 className="h-4 w-4 text-blue-500" />
-              </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="h-4 w-4 text-gray-500" />
-              </Button>
+
+              {/* Progress for projects */}
+              {node.type === "project" && node.totalTasks && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-green-500 rounded-full"
+                      style={{ width: `${((node.tasksCompleted || 0) / node.totalTasks) * 100}%` }}
+                    />
+                  </div>
+                  <span>{node.tasksCompleted}/{node.totalTasks}</span>
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Time tracked */}
+          <div className="flex items-center gap-1 text-xs text-gray-500 shrink-0">
+            <Clock className="h-3 w-3" />
+            <span className="font-medium">{node.totalHours}h</span>
+          </div>
+
+          {/* Last activity */}
+          <span className="hidden lg:block text-xs text-gray-400 shrink-0 w-20 text-right">
+            {node.lastActivity}
+          </span>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            {node.type !== "task" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openAddDialog(node.type === "client" ? "project" : "task", node.id);
+                }}
+              >
+                <Plus className="h-3.5 w-3.5 text-gray-500" />
+              </Button>
+            )}
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5 text-gray-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar
+                </DropdownMenuItem>
+                {node.type !== "task" && (
+                  <DropdownMenuItem>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar {node.type === "client" ? "proyecto" : "tarea"}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archivar
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
+        {/* Children */}
         {hasChildren && isExpanded && (
-          <div className="mt-2">
+          <div>
             {node.children!.map((child) => renderNode(child, level + 1))}
           </div>
         )}
@@ -326,20 +489,34 @@ export function ProjectsView() {
     );
   };
 
+  // Calculate totals for header stats
+  const totalHours = projects.reduce((sum, p) => sum + (p.totalHours || 0), 0);
+  const totalClients = projects.length;
+  const totalProjects = projects.reduce((sum, p) => sum + (p.children?.length || 0), 0);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
-      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
+      {/* Header */}
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
             Proyectos
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Gestiona clientes, proyectos y tareas
-          </p>
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <span>{totalClients} clientes</span>
+            <span>•</span>
+            <span>{totalProjects} proyectos</span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              {totalHours}h total
+            </span>
+          </div>
         </div>
         <Button
           onClick={() => openAddDialog("client")}
-          className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 w-full sm:w-auto"
+          size="sm"
+          className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
         >
           <Plus className="h-4 w-4" />
           Nuevo Cliente
@@ -347,37 +524,48 @@ export function ProjectsView() {
       </div>
 
       {/* Search Bar */}
-      <div className="mb-6">
+      <div className="mb-4">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Buscar por cliente, proyecto o tarea..."
+            placeholder="Buscar cliente, proyecto o tarea..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 pr-12 h-12 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+            className="pl-9 pr-9 h-9 text-sm bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700"
           />
           {searchQuery && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </Button>
           )}
         </div>
       </div>
 
-      {/* Projects Tree */}
-      <div className="space-y-4">
+      {/* Projects Accordion List */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        {/* Column Headers */}
+        <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <div className="w-5" /> {/* Spacer for chevron */}
+          <div className="w-4" /> {/* Spacer for icon */}
+          <div className="flex-1">Nombre</div>
+          <div className="w-12 text-right">Total</div>
+          <div className="hidden lg:block w-20 text-right">Actividad</div>
+          <div className="w-16" /> {/* Spacer for actions */}
+        </div>
+
+        {/* Projects Tree */}
         {filteredProjects.length > 0 ? (
           filteredProjects.map((node) => renderNode(node, 0))
         ) : (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600 dark:text-gray-400">
+          <div className="text-center py-12">
+            <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">
               No se encontraron resultados para &quot;{searchQuery}&quot;
             </p>
           </div>
@@ -422,118 +610,6 @@ export function ProjectsView() {
               Crear
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Stats Dialog */}
-      <Dialog open={selectedItem !== null} onOpenChange={() => setSelectedItem(null)}>
-        <DialogContent className="max-w-2xl">
-          {selectedItem && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl ${
-                    selectedItem.type === "client" 
-                      ? "bg-gradient-to-br from-blue-500 to-blue-600" 
-                      : selectedItem.type === "project"
-                      ? "bg-gradient-to-br from-purple-500 to-purple-600"
-                      : "bg-gradient-to-br from-green-500 to-green-600"
-                  } flex items-center justify-center`}>
-                    {selectedItem.type === "subtask" ? (
-                      <FileText className="h-5 w-5 text-white" />
-                    ) : (
-                      <Folder className="h-5 w-5 text-white" />
-                    )}
-                  </div>
-                  {selectedItem.node.name}
-                </DialogTitle>
-                <DialogDescription>
-                  Estadísticas detalladas de {selectedItem.type === "client" ? "cliente" : selectedItem.type === "project" ? "proyecto" : "tarea"}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="py-4">
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  {(() => {
-                    const stats = generateStats(selectedItem.node);
-                    return (
-                      <>
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            <span className="text-sm text-blue-600 dark:text-blue-400">Total</span>
-                          </div>
-                          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                            {stats.totalHours}h
-                          </div>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                            <span className="text-sm text-purple-600 dark:text-purple-400">Esta Semana</span>
-                          </div>
-                          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                            {stats.thisWeek}h
-                          </div>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <BarChart3 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                            <span className="text-sm text-green-600 dark:text-green-400">Este Mes</span>
-                          </div>
-                          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                            {stats.thisMonth}h
-                          </div>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 rounded-lg p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                            <span className="text-sm text-orange-600 dark:text-orange-400">
-                              {selectedItem.type === "subtask" ? "Completada" : "Tareas"}
-                            </span>
-                          </div>
-                          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                            {stats.tasksCompleted}
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-
-                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
-                    Actividad Reciente
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Último trabajo</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-100">Hace 2 horas</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Días activos</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-100">
-                        {generateStats(selectedItem.node).activeDays} días
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Promedio/sesión</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-100">2.3h</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button onClick={() => setSelectedItem(null)}>
-                  Cerrar
-                </Button>
-              </DialogFooter>
-            </>
-          )}
         </DialogContent>
       </Dialog>
     </div>
