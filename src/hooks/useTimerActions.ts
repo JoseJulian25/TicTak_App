@@ -28,6 +28,13 @@ export function useTimerActions() {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
 
+  // Sincronizar selectedTaskId con la sesión activa al montar
+  useEffect(() => {
+    if (activeSession && activeSession.taskId !== UNNAMED_TASK_ID) {
+      setSelectedTaskId(activeSession.taskId);
+    }
+  }, []);
+
   // Efecto para actualizar el taskId de la sesión activa cuando se selecciona una tarea
   useEffect(() => {
     if (selectedTaskId && activeSession) {
