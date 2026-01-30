@@ -67,3 +67,53 @@ function validSecondsInDay(totalSeconds: number): boolean {
     return totalSeconds >= 0 && totalSeconds < SECONDS_IN_DAY;
 }
 
+// ========================================
+// HELPERS PARA CÁLCULO DE TIEMPO REAL
+// ========================================
+
+/**
+ * Calcula el tiempo total pausado desde un array de segmentos de pausa
+ * 
+ * @param pauseSegments - Array de segmentos con {start, end?}
+ * @returns Tiempo total pausado en milisegundos
+ * 
+ * Si un segmento tiene end=undefined (pausa abierta), usa Date.now() como fin
+ */
+export function getTotalPausedTime(pauseSegments: Array<{ start: number; end?: number }>): number {
+    if (!pauseSegments || pauseSegments.length === 0) {
+        return 0;
+    }
+
+    const now = Date.now();
+    
+    return pauseSegments.reduce((total, segment) => {
+        const endTime = segment.end ?? now; // Si está abierto, usar ahora
+        const duration = endTime - segment.start;
+        return total + duration;
+    }, 0);
+}
+
+/**
+ * Calcula el tiempo transcurrido desde startTime, restando el tiempo pausado
+ * 
+ * @param startTime - Timestamp de inicio (en ms)
+ * @param pauseSegments - Array de pausas
+ * @param endTime - Timestamp de fin (opcional, usa Date.now() si no se provee)
+ * @returns Tiempo transcurrido en segundos
+ */
+export function calculateElapsedTime(
+    startTime: number,
+    pauseSegments: Array<{ start: number; end?: number }>,
+    endTime?: number
+): number {
+    const finalEndTime = endTime ?? Date.now();
+    
+    const totalTime = finalEndTime - startTime;
+    
+    const pausedTime = getTotalPausedTime(pauseSegments);
+    
+    const effectiveTime = totalTime - pausedTime;
+    
+    return Math.max(0, Math.floor(effectiveTime / 1000));
+}
+
