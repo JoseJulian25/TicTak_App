@@ -2,10 +2,6 @@
 // TIPOS PARA EL MÓDULO DE TEMPORIZADOR
 // ========================================
 
-// ----------------------------------------
-// Entidades Principales
-// ----------------------------------------
-
 /**
  * Cliente - Nivel superior de la jerarquía
  */
@@ -19,9 +15,7 @@ export interface Client {
   isArchived: boolean;
 }
 
-/**
- * Proyecto - Pertenece a un Cliente
- */
+
 export interface Project {
   id: string;
   name: string;
@@ -33,9 +27,7 @@ export interface Project {
   isArchived: boolean;
 }
 
-/**
- * Tarea - Pertenece a un Proyecto
- */
+
 export interface Task {
   id: string;
   name: string;
@@ -47,13 +39,6 @@ export interface Task {
   isArchived: boolean;
 }
 
-// ----------------------------------------
-// Sesiones de Trabajo
-// ----------------------------------------
-
-/**
- * Sesión completada y guardada
- */
 export interface Session {
   id: string;
   taskId: string;
@@ -65,13 +50,24 @@ export interface Session {
 }
 
 /**
+ * Segmento de pausa en una sesión activa
+ */
+export interface PauseSegment {
+  start: number;
+  end?: number; 
+}
+
+/**
  * Sesión activa (timer en curso)
+ * 
+ * Usa timestamps (number) en lugar de Date para calcular tiempo real transcurrido
+ * incluso cuando la app está suspendida o en background.
  */
 export interface ActiveSession {
   taskId: string;
-  startTime: Date;
-  pausedAt?: Date; // Si está pausado
-  totalPausedTime: number; // Tiempo total pausado en segundos
+  startTime: number;
+  pauseSegments: PauseSegment[];
+  lastTickTimestamp: number; 
 }
 
 /**
