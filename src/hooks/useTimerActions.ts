@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export function useTimerActions() {
   const activeSession = useTimerStore((state) => state.activeSession);
-  const elapsedSeconds = useTimerStore((state) => state.elapsedSeconds);
+  const getElapsedSeconds = useTimerStore((state) => state.getElapsedSeconds);
   const isRunning = useTimerStore((state) => state.isRunning);
   const isPaused = useTimerStore((state) => state.isPaused);
   const startTimer = useTimerStore((state) => state.startTimer);
@@ -27,6 +27,9 @@ export function useTimerActions() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
+
+  // Calcular elapsedSeconds en tiempo real
+  const elapsedSeconds = getElapsedSeconds();
 
   // Sincronizar selectedTaskId con la sesión activa al montar
   useEffect(() => {
@@ -47,10 +50,7 @@ export function useTimerActions() {
         
         useTimerStore.setState({ activeSession: updatedSession });
         
-        Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
-          session: updatedSession,
-          elapsedSeconds,
-        });
+        Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, updatedSession);
         
         // Feedback al usuario
         const wasUnnamed = activeSession.taskId === UNNAMED_TASK_ID;
@@ -65,7 +65,7 @@ export function useTimerActions() {
         }
       }
     }
-  }, [selectedTaskId, activeSession, elapsedSeconds]);
+  }, [selectedTaskId, activeSession]);
 
   const handleStartPause = () => {
     if (isRunning) {

@@ -5,7 +5,10 @@ import { useTimerStore } from '@/stores/useTimerStore';
  * Hook personalizado para manejar el interval del timer
  */
 export const useTimerInterval = () => {
-  const { isRunning, tick, elapsedSeconds, isPaused } = useTimerStore();
+  const isRunning = useTimerStore((state) => state.isRunning);
+  const isPaused = useTimerStore((state) => state.isPaused);
+  const tick = useTimerStore((state) => state.tick);
+  const getElapsedSeconds = useTimerStore((state) => state.getElapsedSeconds);
 
   useEffect(() => {
     if (!isRunning) {
@@ -23,7 +26,7 @@ export const useTimerInterval = () => {
   }, [isRunning, tick]);
 
   return {
-    elapsedSeconds,
+    elapsedSeconds: getElapsedSeconds(),
     isRunning,
     isPaused,
   };
