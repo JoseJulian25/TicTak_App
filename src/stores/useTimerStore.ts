@@ -1,13 +1,21 @@
 import { create } from 'zustand';
 import { ActiveSession } from '@/types';
 import { Storage } from '@/lib/storage';
-import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { LOCAL_STORAGE_KEYS, TIMER_CONFIG } from '@/lib/constants';
 import { calculateElapsedTime } from '@/lib/time-utils';
+
+interface PendingRecoveryData {
+  timeUntilClose: number; 
+  timeTotal: number;      
+  session: ActiveSession;
+}
 
 interface TimerStore {
   activeSession: ActiveSession | null;
   isRunning: boolean; 
-  isPaused: boolean; 
+  isPaused: boolean;
+  needsRecoveryDecision: boolean;
+  pendingRecoveryData: PendingRecoveryData | null;
 
   startTimer: (taskId: string) => void;
   pauseTimer: () => void;
@@ -16,6 +24,7 @@ interface TimerStore {
   resetTimer: () => void;
   getElapsedSeconds: () => number;
   getCurrentTaskInfo: () => { taskId: string; elapsedSeconds: number } | null;
+  applyRecoveryDecision: (choice: 'until-close' | 'full-time') => void;
 }
 
 export const useTimerStore = create<TimerStore>((set, get) => ({
@@ -23,6 +32,8 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
   activeSession: null,
   isRunning: false,
   isPaused: false,
+  needsRecoveryDecision: false,
+  pendingRecoveryData: null,
 
 
   startTimer: (taskId: string) => {
@@ -124,7 +135,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
   /**
    * Actualizar lastTickTimestamp y persistir sesión
    * 
-   * Este tick solo sirve para:
+   * Este tick sirve para:
    * 1. Forzar re-render (actualizar UI)
    * 2. Actualizar heartbeat (lastTickTimestamp) para detección de gaps
    */
@@ -161,8 +172,6 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
   /**
    * Calcula el tiempo transcurrido en tiempo real desde startTime
    * 
-   * Esta función siempre calcula el tiempo correcto, incluso si la app
-   * estuvo suspendida o en background.
    */
   getElapsedSeconds: () => {
     const state = get();
@@ -189,39 +198,130 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       elapsedSeconds: get().getElapsedSeconds(),
     };
   },
+
+  /**
+   * Aplicar decisión del usuario sobre tiempo a recuperar
+   */
+  applyRecoveryDecision: (choice: 'until-close' | 'full-time') => {
+    const { pendingRecoveryData } = get();
+
+    if (!pendingRecoveryData) {
+      return;
+    }
+
+    const now = Date.now();
+    let finalSession = { ...pendingRecoveryData.session };
+
+    if (choice === 'until-close') {
+      // Opción 1: Pausar desde lastTickTimestamp hasta ahora
+      const lastTick = pendingRecoveryData.session.lastTickTimestamp;
+      
+      finalSession = {
+        ...finalSession,
+        pauseSegments: [
+          ...finalSession.pauseSegments,
+          { start: lastTick, end: now }
+        ],
+        lastTickTimestamp: now,
+      };
+    } else {
+      // Opción 2: Contar tiempo completo (no agregar pausa)
+      finalSession = {
+        ...finalSession,
+        lastTickTimestamp: now,
+      };
+    }
+
+    // Recuperar sesión en estado pausado
+    set({
+      activeSession: finalSession,
+      isRunning: false,
+      isPaused: true,
+      needsRecoveryDecision: false,
+      pendingRecoveryData: null,
+    });
+
+    Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, finalSession);
+  },
 }));
 
 /**
  * Al cargar la app, intentar recuperar una sesión activa guardada
  * 
+ * Implementa 3 casos:
+ * 1. isPaused = true: Recuperar directamente sin modal
+ * 2. isRunning + gap < 3 min: Auto-recuperar sin modal
+ * 3. isRunning + gap >= 3 min: Mostrar modal de decisión
  */
 const recoverSession = () => {
-  const saved = Storage.getItem<{ session: ActiveSession; elapsedSeconds: number;}>(LOCAL_STORAGE_KEYS.ACTIVE_SESSION);
+  const saved = Storage.getItem<ActiveSession>(LOCAL_STORAGE_KEYS.ACTIVE_SESSION);
 
-  if (!saved || !saved.session) {
+  if (!saved) {
     return;
   }
 
-  const { session, elapsedSeconds } = saved;
-
-  // Calcular tiempo real transcurrido desde que se inició
-  const startTime = new Date(session.startTime).getTime();
+  const session = saved;
   const now = Date.now();
-  const realElapsed = Math.floor((now - startTime) / 1000);
+  const gap = now - session.lastTickTimestamp;
 
-  // Si hay pausedAt, usar el tiempo guardado en lugar del calculado
-  const finalElapsed = session.pausedAt ? elapsedSeconds : realElapsed;
+  // CASO 1: Usuario pausó manualmente antes de cerrar
+  // Recuperar directamente sin preguntar
+  if (session.pauseSegments.length > 0) {
+    const lastSegment = session.pauseSegments[session.pauseSegments.length - 1];
+    
+    if (lastSegment.end === undefined) {
+      // Hay una pausa abierta, significa que el usuario pausó manualmente
+      useTimerStore.setState({
+        activeSession: session,
+        isRunning: false,
+        isPaused: true,
+        needsRecoveryDecision: false,
+        pendingRecoveryData: null,
+      });
+      return;
+    }
+  }
 
-  // Restaurar en estado pausado por seguridad
-  // El usuario puede reanudar manualmente si quiere
+  // CASO 2: Timer corriendo + gap pequeño (< 3 minutos)
+  // Auto-recuperar en estado pausado sin modal
+  if (gap < TIMER_CONFIG.BACKGROUND_DETECTION_THRESHOLD) {
+    useTimerStore.setState({
+      activeSession: {
+        ...session,
+        lastTickTimestamp: now,
+      },
+      isRunning: false,
+      isPaused: true,
+      needsRecoveryDecision: false,
+      pendingRecoveryData: null,
+    });
+    return;
+  }
+
+  // CASO 3: Timer corriendo + gap grande (>= 3 minutos)
+  // Mostrar modal para que usuario decida
+  const timeUntilClose = calculateElapsedTime(
+    session.startTime,
+    session.pauseSegments,
+    session.lastTickTimestamp
+  );
+
+  const timeTotal = calculateElapsedTime(
+    session.startTime,
+    session.pauseSegments,
+    now
+  );
+
   useTimerStore.setState({
-    activeSession: {
-      ...session,
-      pausedAt: session.pausedAt || new Date(),
-    },
-    elapsedSeconds: finalElapsed,
+    activeSession: null, // No cargar hasta que usuario decida
     isRunning: false,
-    isPaused: true,
+    isPaused: false,
+    needsRecoveryDecision: true,
+    pendingRecoveryData: {
+      timeUntilClose,
+      timeTotal,
+      session,
+    },
   });
 };
 
