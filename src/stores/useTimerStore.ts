@@ -2,10 +2,10 @@ import { create } from 'zustand';
 import { ActiveSession } from '@/types';
 import { Storage } from '@/lib/storage';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { calculateElapsedTime } from '@/lib/time-utils';
 
 interface TimerStore {
   activeSession: ActiveSession | null;
-  elapsedSeconds: number;
   isRunning: boolean; 
   isPaused: boolean; 
 
@@ -14,13 +14,13 @@ interface TimerStore {
   resumeTimer: () => void;
   tick: () => void; 
   resetTimer: () => void;
+  getElapsedSeconds: () => number;
   getCurrentTaskInfo: () => { taskId: string; elapsedSeconds: number } | null;
 }
 
 export const useTimerStore = create<TimerStore>((set, get) => ({
 
   activeSession: null,
-  elapsedSeconds: 0,
   isRunning: false,
   isPaused: false,
 
@@ -33,23 +33,21 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       return;
     }
 
+    const now = Date.now();
     const newSession: ActiveSession = {
       taskId,
-      startTime: new Date(),
-      totalPausedTime: 0,
+      startTime: now,
+      pauseSegments: [],
+      lastTickTimestamp: now,
     };
 
     set({
       activeSession: newSession,
-      elapsedSeconds: 0,
       isRunning: true,
       isPaused: false,
     });
 
-    Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
-      session: newSession,
-      elapsedSeconds: 0,
-    });
+    Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, newSession);
   },
 
   pauseTimer: () => {
@@ -112,32 +110,34 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
   },
 
   /**
-   * Incrementar el contador de segundos (llamado cada segundo por el interval)
+   * Actualizar lastTickTimestamp y persistir sesión
+   * 
+   * Este tick solo sirve para:
+   * 1. Forzar re-render (actualizar UI)
+   * 2. Actualizar heartbeat (lastTickTimestamp) para detección de gaps
    */
   tick: () => {
     const state = get();
 
-    if (!state.isRunning) {
+    if (!state.isRunning || !state.activeSession) {
       return;
     }
 
-    const newElapsed = state.elapsedSeconds + 1;
+    const now = Date.now();
+    const updatedSession: ActiveSession = {
+      ...state.activeSession,
+      lastTickTimestamp: now,
+    };
 
-    set({ elapsedSeconds: newElapsed });
+    set({ activeSession: updatedSession });
 
-    // Auto-guardar cada tick (cada segundo)
-    if (state.activeSession) {
-      Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
-        session: state.activeSession,
-        elapsedSeconds: newElapsed,
-      });
-    }
+    // Persistir sesión con timestamp actualizado
+    Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, updatedSession);
   },
 
   resetTimer: () => {
     set({
       activeSession: null,
-      elapsedSeconds: 0,
       isRunning: false,
       isPaused: false,
     });
@@ -145,6 +145,25 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
     Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, null);
   },
 
+
+  /**
+   * Calcula el tiempo transcurrido en tiempo real desde startTime
+   * 
+   * Esta función siempre calcula el tiempo correcto, incluso si la app
+   * estuvo suspendida o en background.
+   */
+  getElapsedSeconds: () => {
+    const state = get();
+
+    if (!state.activeSession) {
+      return 0;
+    }
+
+    return calculateElapsedTime(
+      state.activeSession.startTime,
+      state.activeSession.pauseSegments
+    );
+  },
 
   getCurrentTaskInfo: () => {
     const state = get();
@@ -155,7 +174,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
 
     return {
       taskId: state.activeSession.taskId,
-      elapsedSeconds: state.elapsedSeconds,
+      elapsedSeconds: get().getElapsedSeconds(),
     };
   },
 }));
