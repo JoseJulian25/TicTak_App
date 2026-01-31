@@ -50,6 +50,12 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
     Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, newSession);
   },
 
+  /**
+   * Pausar el timer
+   * 
+   * Agrega un nuevo segmento de pausa con start=ahora y end=undefined (abierto)
+   * startTime NUNCA cambia, se mantiene el punto de referencia original
+   */
   pauseTimer: () => {
     const state = get();
 
@@ -57,9 +63,14 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       return;
     }
 
+    const now = Date.now();
     const updatedSession: ActiveSession = {
       ...state.activeSession,
-      pausedAt: new Date(),
+      pauseSegments: [
+        ...state.activeSession.pauseSegments,
+        { start: now, end: undefined } // Pausa abierta
+      ],
+      lastTickTimestamp: now,
     };
 
     set({
@@ -68,16 +79,14 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       isPaused: true,
     });
 
-    Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
-      session: updatedSession,
-      elapsedSeconds: state.elapsedSeconds,
-    });
+    Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, updatedSession);
   },
 
   /**
    * Reanudar el timer pausado
    * 
-   * Ajusta el startTime para que el cálculo de tiempo sea correcto
+   * Cierra el último segmento de pausa (pone end=ahora)
+   * startTime NUNCA cambia, se mantiene el punto de referencia original
    */
   resumeTimer: () => {
     const state = get();
@@ -86,15 +95,21 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       return;
     }
 
-    // Ajustar el startTime: restar el tiempo ya transcurrido
-    // Esto hace que al calcular (ahora - startTime) obtengamos el tiempo correcto
-    const newStartTime = new Date(
-      Date.now() - state.elapsedSeconds * 1000
-    );
+    const now = Date.now();
+    const pauseSegments = [...state.activeSession.pauseSegments];
+    
+    // Cerrar el último segmento de pausa (si existe y está abierto)
+    if (pauseSegments.length > 0) {
+      const lastSegment = pauseSegments[pauseSegments.length - 1];
+      if (lastSegment.end === undefined) {
+        lastSegment.end = now;
+      }
+    }
 
     const updatedSession: ActiveSession = {
       ...state.activeSession,
-      startTime: newStartTime,
+      pauseSegments,
+      lastTickTimestamp: now,
     };
 
     set({
@@ -103,10 +118,7 @@ export const useTimerStore = create<TimerStore>((set, get) => ({
       isPaused: false,
     });
 
-    Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, {
-      session: updatedSession,
-      elapsedSeconds: state.elapsedSeconds,
-    });
+    Storage.setItem(LOCAL_STORAGE_KEYS.ACTIVE_SESSION, updatedSession);
   },
 
   /**
