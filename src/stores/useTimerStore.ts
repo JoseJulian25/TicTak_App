@@ -290,8 +290,8 @@ const recoverSession = () => {
         ...session,
         lastTickTimestamp: now,
       },
-      isRunning: false,
-      isPaused: true,
+      isRunning: true,
+      isPaused: false,
       needsRecoveryDecision: false,
       pendingRecoveryData: null,
     });
