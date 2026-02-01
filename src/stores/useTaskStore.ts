@@ -15,6 +15,7 @@ interface TaskStore {
     deleteTask: (id: string) => void;
     archiveTask: (id: string) => void;
     restoreTask: (id: string) => void;
+    moveTaskToProject: (taskId: string, newProjectId: string) => void;
     getTaskById: (id: string) => Task | undefined;
     getTasksByProject: (projectId: string, includeArchived?: boolean) => Task[];
     getActiveTasks: () => Task[];
@@ -70,7 +71,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     },
 
     deleteTask: (id: string) => {
-        
+
         const { useSessionStore } = require('./useSessionStore');
         const sessionStore = useSessionStore.getState();
         const taskSessions = sessionStore.getSessionsByTask(id);
@@ -100,6 +101,28 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         set((state) => {
             const updatedTasks = state.tasks.map((task) =>
                 task.id === id ? { ...task, isArchived: false, updatedAt: new Date() } : task
+            );
+            Storage.setItem(LOCAL_STORAGE_KEYS.TASKS, updatedTasks);
+            return { tasks: updatedTasks };
+        });
+    },
+
+    moveTaskToProject: (taskId: string, newProjectId: string) => {
+        const project = useProjectStore.getState().getProjectById(newProjectId);
+        
+        if (!project) {
+            throw new Error('Proyecto de destino no encontrado');
+        }
+
+        const task = get().getTaskById(taskId);
+        
+        if (!task) {
+            throw new Error('Tarea no encontrada');
+        }
+
+        set((state) => {
+            const updatedTasks = state.tasks.map((t) =>
+                t.id === taskId ? { ...t, projectId: newProjectId, updatedAt: new Date() } : t
             );
             Storage.setItem(LOCAL_STORAGE_KEYS.TASKS, updatedTasks);
             return { tasks: updatedTasks };

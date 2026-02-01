@@ -16,6 +16,7 @@ interface ProjectStore {
     hardDeleteProject: (id: string) => void;
     archiveProject: (id: string) => void;
     restoreProject: (id: string) => void;
+    moveProjectToClient: (projectId: string, newClientId: string) => void;
     getProjectById: (id: string) => Project | undefined;
     getProjectsByClient: (clientId: string, includeArchived?: boolean) => Project[];
     getActiveProjects: () => Project[];
@@ -109,6 +110,30 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         set((state) => {
             const updatedProjects = state.projects.map((project) =>
                 project.id === id ? { ...project, isArchived: false, updatedAt: new Date() } : project
+            );
+
+            Storage.setItem(LOCAL_STORAGE_KEYS.PROJECTS, updatedProjects);
+
+            return { projects: updatedProjects };
+        });
+    },
+
+    moveProjectToClient: (projectId: string, newClientId: string) => {
+        const client = useClientStore.getState().getClientById(newClientId);
+        
+        if (!client) {
+            throw new Error('Cliente de destino no encontrado');
+        }
+
+        const project = get().getProjectById(projectId);
+        
+        if (!project) {
+            throw new Error('Proyecto no encontrado');
+        }
+
+        set((state) => {
+            const updatedProjects = state.projects.map((p) =>
+                p.id === projectId ? { ...p, clientId: newClientId, updatedAt: new Date() } : p
             );
 
             Storage.setItem(LOCAL_STORAGE_KEYS.PROJECTS, updatedProjects);
