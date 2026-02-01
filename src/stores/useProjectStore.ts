@@ -2,21 +2,20 @@ import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { generateId } from '@/lib/id-generator';
 import { Storage } from '@/lib/storage';
 import { CreateProjectInput, Project, Task } from '@/types/index';
-import { create } from 'zustand/react';
-import { useClientStore } from './useClientStore';
+import { create } from 'zustand';
 
 interface ProjectStore {
     projects: Project[];
     isLoading: boolean;
 
     loadProjects: () => void;
-    addProject: (project: CreateProjectInput) => Project;
+    addProject:  (project: CreateProjectInput) => Promise<Project>;
     updateProject: (id: string, data: Partial<Project>) => void;
     deleteProject: (id: string) => void;
     hardDeleteProject: (id: string) => void;
     archiveProject: (id: string) => void;
     restoreProject: (id: string) => void;
-    moveProjectToClient: (projectId: string, newClientId: string) => void;
+    moveProjectToClient: (projectId: string, newClientId: string) => Promise<void>;
     getProjectById: (id: string) => Project | undefined;
     getProjectsByClient: (clientId: string, includeArchived?: boolean) => Project[];
     getActiveProjects: () => Project[];
@@ -32,8 +31,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         set({ projects });
     },
 
-    addProject: (input: CreateProjectInput) => {
+    addProject: async (input: CreateProjectInput) => {
 
+        // Lazy import to avoid circular dependency
+        const { useClientStore } = await import('./useClientStore');
         const client  = useClientStore.getState().getClientById(input.clientId);
 
         if (!client) {
@@ -118,7 +119,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         });
     },
 
-    moveProjectToClient: (projectId: string, newClientId: string) => {
+    moveProjectToClient: async (projectId: string, newClientId: string) => {
+        // Lazy import to avoid circular dependency
+        const { useClientStore } = await import('./useClientStore');
         const client = useClientStore.getState().getClientById(newClientId);
         
         if (!client) {

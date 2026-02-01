@@ -105,7 +105,7 @@ export function useTimerActions() {
     }
   };
 
-  const handleSaveWithNewTask = () => {
+  const handleSaveWithNewTask = async () => {
     if (!newTaskName.trim()) return;
     
     try {
@@ -116,7 +116,7 @@ export function useTimerActions() {
         return;
       }
       
-      const newTask = addTask({
+      const newTask = await addTask({
         name: newTaskName.trim(),
         projectId: generalProject.id,
       });

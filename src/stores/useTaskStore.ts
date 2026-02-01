@@ -2,20 +2,19 @@ import { LOCAL_STORAGE_KEYS, PREFIXES_ID } from "@/lib/constants";
 import { generateId } from "@/lib/id-generator";
 import { Storage } from "@/lib/storage";
 import { CreateTaskInput, Task, Session } from "@/types";
-import { create } from "zustand/react";
-import { useProjectStore } from "./useProjectStore";
+import { create } from "zustand";
 
 interface TaskStore {
     tasks: Task[];
     isLoading: boolean;
 
     loadTasks: () => void;
-    addTask: (input: CreateTaskInput) => Task;
+    addTask: (input: CreateTaskInput) => Promise<Task>;
     updateTask: (id: string, data: Partial<Task>) => void;
     deleteTask: (id: string) => void;
     archiveTask: (id: string) => void;
     restoreTask: (id: string) => void;
-    moveTaskToProject: (taskId: string, newProjectId: string) => void;
+    moveTaskToProject: (taskId: string, newProjectId: string) => Promise<void>;
     getTaskById: (id: string) => Task | undefined;
     getTasksByProject: (projectId: string, includeArchived?: boolean) => Task[];
     getActiveTasks: () => Task[];
@@ -32,8 +31,9 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         set({ tasks });
     },
 
-    addTask: (input: CreateTaskInput) => {
-
+    addTask: async (input: CreateTaskInput) => {
+        // Lazy import to avoid circular dependency
+        const { useProjectStore } = await import('./useProjectStore');
         const project = useProjectStore.getState().getProjectById(input.projectId);
 
         if (!project) {
@@ -107,7 +107,9 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         });
     },
 
-    moveTaskToProject: (taskId: string, newProjectId: string) => {
+    moveTaskToProject: async (taskId: string, newProjectId: string) => {
+        // Lazy import to avoid circular dependency
+        const { useProjectStore } = await import('./useProjectStore');
         const project = useProjectStore.getState().getProjectById(newProjectId);
         
         if (!project) {
