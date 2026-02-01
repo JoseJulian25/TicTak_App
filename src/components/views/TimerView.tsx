@@ -6,6 +6,7 @@ import { CircularTimer } from "@/components/CircularTimer";
 import { ProjectTreeSelector } from "@/components/ProjectTreeSelector";
 import { SessionSummary } from "@/components/SessionSummary";
 import { SessionHistory } from "@/components/SessionHistory";
+import { RecoveryDecisionModal } from "@/components/RecoveryDecisionModal";
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -20,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTimerActions } from "@/hooks/useTimerActions";
+import { useTimerStore } from "@/stores/useTimerStore";
 import { formatDuration } from "@/lib/time-utils";
 
 export function TimerView() {
@@ -44,8 +46,23 @@ export function TimerView() {
     confirmReset,
   } = useTimerActions();
 
+  // Estado del modal de recuperación
+  const needsRecoveryDecision = useTimerStore((state) => state.needsRecoveryDecision);
+  const pendingRecoveryData = useTimerStore((state) => state.pendingRecoveryData);
+  const applyRecoveryDecision = useTimerStore((state) => state.applyRecoveryDecision);
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
+      {/* Modal de Recuperación de Sesión */}
+      {needsRecoveryDecision && pendingRecoveryData && (
+        <RecoveryDecisionModal
+          isOpen={needsRecoveryDecision}
+          timeUntilClose={pendingRecoveryData.timeUntilClose}
+          timeTotal={pendingRecoveryData.timeTotal}
+          onDecision={applyRecoveryDecision}
+        />
+      )}
+
       <div className="flex flex-col items-center">
         {/* Project Tree Selector */}
         <div className="w-full max-w-md mb-8">
