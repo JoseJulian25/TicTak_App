@@ -1,7 +1,7 @@
 import { LOCAL_STORAGE_KEYS, PREFIXES_ID } from "@/lib/constants";
 import { generateId } from "@/lib/id-generator";
 import { Storage } from "@/lib/storage";
-import { CreateTaskInput, Task } from "@/types";
+import { CreateTaskInput, Task, Session } from "@/types";
 import { create } from "zustand/react";
 import { useProjectStore } from "./useProjectStore";
 
@@ -13,7 +13,12 @@ interface TaskStore {
     addTask: (input: CreateTaskInput) => Task;
     updateTask: (id: string, data: Partial<Task>) => void;
     deleteTask: (id: string) => void;
+    archiveTask: (id: string) => void;
+    restoreTask: (id: string) => void;
     getTaskById: (id: string) => Task | undefined;
+    getTasksByProject: (projectId: string, includeArchived?: boolean) => Task[];
+    getActiveTasks: () => Task[];
+    getArchivedTasks: () => Task[];
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -65,6 +70,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     },
 
     deleteTask: (id: string) => {
+        
+        const { useSessionStore } = require('./useSessionStore');
+        const sessionStore = useSessionStore.getState();
+        const taskSessions = sessionStore.getSessionsByTask(id);
+        
+        taskSessions.forEach((session: Session) => {
+            sessionStore.deleteSession(session.id);
+        });
+        
         set((state) => {
             const updatedTasks = state.tasks.filter((task) => task.id !== id);
             Storage.setItem(LOCAL_STORAGE_KEYS.TASKS, updatedTasks);
@@ -72,8 +86,42 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         });
     },
 
+    archiveTask: (id: string) => {
+        set((state) => {
+            const updatedTasks = state.tasks.map((task) =>
+                task.id === id ? { ...task, isArchived: true, updatedAt: new Date() } : task
+            );
+            Storage.setItem(LOCAL_STORAGE_KEYS.TASKS, updatedTasks);
+            return { tasks: updatedTasks };
+        });
+    },
+
+    restoreTask: (id: string) => {
+        set((state) => {
+            const updatedTasks = state.tasks.map((task) =>
+                task.id === id ? { ...task, isArchived: false, updatedAt: new Date() } : task
+            );
+            Storage.setItem(LOCAL_STORAGE_KEYS.TASKS, updatedTasks);
+            return { tasks: updatedTasks };
+        });
+    },
+
     getTaskById: (id: string) => {
         return get().tasks.find((task) => task.id === id);
+    },
+
+    getTasksByProject: (projectId: string, includeArchived: boolean = false) => {
+        return get().tasks.filter(
+            task => task.projectId === projectId && (includeArchived || !task.isArchived)
+        );
+    },
+
+    getActiveTasks: () => {
+        return get().tasks.filter((task) => !task.isArchived);
+    },
+
+    getArchivedTasks: () => {
+        return get().tasks.filter((task) => task.isArchived);
     },
 
 }));

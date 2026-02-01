@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Client, CreateClientInput } from '@/types';
+import { Client, CreateClientInput, Project, Task } from '@/types';
 import { Storage } from '@/lib/storage';
 import { LOCAL_STORAGE_KEYS, PREFIXES_ID } from '@/lib/constants';
 import { generateId } from '@/lib/id-generator';
@@ -14,7 +14,12 @@ interface ClientStore {
   addClient: (input: CreateClientInput) => Client;
   updateClient: (id: string, data: Partial<Client>) => void;
   deleteClient: (id: string) => void;
+  hardDeleteClient: (id: string) => void;
+  archiveClient: (id: string) => void;
+  restoreClient: (id: string) => void;
   getClientById: (id: string) => Client | undefined;
+  getActiveClients: () => Client[];
+  getArchivedClients: () => Client[];
 }
 
 
@@ -70,9 +75,42 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   deleteClient: (id: string) => {
     set((state) => {
 
-      // Soft delete: solo marcar como archivado
+      const updatedClients = state.clients.filter((client) => client.id !== id);
+
+      Storage.setItem(LOCAL_STORAGE_KEYS.CLIENTS, updatedClients);
+
+      return { clients: updatedClients };
+    });
+  },
+
+  
+  hardDeleteClient: (id: string) => {
+    
+    const { useProjectStore } = require('./useProjectStore');
+    const { useTaskStore } = require('./useTaskStore');
+    
+    const projectStore = useProjectStore.getState();
+    const clientProjects = projectStore.projects.filter((p: Project) => p.clientId === id);
+    
+    const taskStore = useTaskStore.getState();
+    clientProjects.forEach((project: Project) => {
+      const projectTasks = taskStore.tasks.filter((t: Task) => t.projectId === project.id);
+      projectTasks.forEach((task: Task) => {
+        taskStore.deleteTask(task.id);
+      });
+    });
+    
+    clientProjects.forEach((project: Project) => {
+      projectStore.deleteProject(project.id);
+    });
+
+    get().deleteClient(id);
+  },
+
+  archiveClient: (id: string) => {
+    set((state) => {
       const updatedClients = state.clients.map((client) =>
-        client.id === id ? { ...client, isArchived: true, updatedAt: new Date()} : client
+        client.id === id ? { ...client, isArchived: true, updatedAt: new Date() } : client
       );
 
       Storage.setItem(LOCAL_STORAGE_KEYS.CLIENTS, updatedClients);
@@ -81,9 +119,28 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     });
   },
 
+  restoreClient: (id: string) => {
+    set((state) => {
+      const updatedClients = state.clients.map((client) =>
+        client.id === id ? { ...client, isArchived: false, updatedAt: new Date() } : client
+      );
+
+      Storage.setItem(LOCAL_STORAGE_KEYS.CLIENTS, updatedClients);
+
+      return { clients: updatedClients };
+    });
+  },
 
   getClientById: (id: string) => {
     return get().clients.find((client) => client.id === id);
+  },
+
+  getActiveClients: () => {
+    return get().clients.filter((client) => !client.isArchived);
+  },
+
+  getArchivedClients: () => {
+    return get().clients.filter((client) => client.isArchived);
   },
 }));
 
