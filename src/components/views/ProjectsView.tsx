@@ -16,6 +16,9 @@ import {
   Trash2,
   Archive
 } from "lucide-react";
+import { TreeNode } from "@/types";
+import { useProjectTreeForProjects } from "@/hooks/useProjectTreeForProjects";
+import { SkeletonProjects } from "@/components/skeletons/SkeletonProjects";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,223 +37,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface ProjectNode {
-  id: string;
-  name: string;
-  type: "client" | "project" | "task";
-  children?: ProjectNode[];
-  parentId?: string;
-  // Mock data para métricas
-  totalHours?: number;
-  hoursThisWeek?: number;
-  tasksCompleted?: number;
-  totalTasks?: number;
-  lastActivity?: string;
-}
+import { Switch } from "@/components/ui/switch";
 
 export function ProjectsView() {
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["personal", "1", "1-1"]));
+  const [showArchived, setShowArchived] = useState(false);
+  const { tree, isLoading } = useProjectTreeForProjects(showArchived);
+  
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [showDialog, setShowDialog] = useState(false);
   const [dialogType, setDialogType] = useState<"client" | "project" | "task">("client");
   const [selectedParentId, setSelectedParentId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
-
-  const projects: ProjectNode[] = [
-    {
-      id: "personal",
-      name: "Personal",
-      type: "client",
-      totalHours: 45,
-      hoursThisWeek: 8,
-      lastActivity: "Hace 2h",
-      children: [
-        {
-          id: "personal-general",
-          name: "General",
-          type: "project",
-          parentId: "personal",
-          totalHours: 45,
-          hoursThisWeek: 8,
-          tasksCompleted: 3,
-          totalTasks: 5,
-          lastActivity: "Hace 2h",
-          children: [
-            {
-              id: "personal-general-1",
-              name: "Organizar documentos",
-              type: "task",
-              parentId: "personal-general",
-              totalHours: 2,
-              lastActivity: "Ayer",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: "1",
-      name: "BanReservas",
-      type: "client",
-      totalHours: 127,
-      hoursThisWeek: 24,
-      lastActivity: "Hace 30min",
-      children: [
-        {
-          id: "1-1",
-          name: "Sistema de Pagos",
-          type: "project",
-          parentId: "1",
-          totalHours: 85,
-          hoursThisWeek: 18,
-          tasksCompleted: 2,
-          totalTasks: 4,
-          lastActivity: "Hace 30min",
-          children: [
-            {
-              id: "1-1-1",
-              name: "Implementar API de transacciones",
-              type: "task",
-              parentId: "1-1",
-              totalHours: 32,
-              lastActivity: "Hace 30min",
-            },
-            {
-              id: "1-1-2",
-              name: "Diseñar UI de pagos",
-              type: "task",
-              parentId: "1-1",
-              totalHours: 18,
-              lastActivity: "Hace 2 días",
-            },
-            {
-              id: "1-1-3",
-              name: "Pruebas de integración",
-              type: "task",
-              parentId: "1-1",
-              totalHours: 12,
-              lastActivity: "Ayer",
-            },
-            {
-              id: "1-1-4",
-              name: "Documentación técnica",
-              type: "task",
-              parentId: "1-1",
-              totalHours: 5,
-              lastActivity: "Hace 3 días",
-            },
-          ],
-        },
-        {
-          id: "1-2",
-          name: "App Móvil",
-          type: "project",
-          parentId: "1",
-          totalHours: 42,
-          hoursThisWeek: 6,
-          tasksCompleted: 1,
-          totalTasks: 3,
-          lastActivity: "Ayer",
-          children: [
-            {
-              id: "1-2-1",
-              name: "Login y autenticación",
-              type: "task",
-              parentId: "1-2",
-              totalHours: 15,
-              lastActivity: "Ayer",
-            },
-            {
-              id: "1-2-2",
-              name: "Dashboard principal",
-              type: "task",
-              parentId: "1-2",
-              totalHours: 20,
-              lastActivity: "Hace 4 días",
-            },
-            {
-              id: "1-2-3",
-              name: "Notificaciones push",
-              type: "task",
-              parentId: "1-2",
-              totalHours: 7,
-              lastActivity: "Hace 1 semana",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: "2",
-      name: "Tech Corp",
-      type: "client",
-      totalHours: 68,
-      hoursThisWeek: 12,
-      lastActivity: "Hace 4h",
-      children: [
-        {
-          id: "2-1",
-          name: "Website Redesign",
-          type: "project",
-          parentId: "2",
-          totalHours: 68,
-          hoursThisWeek: 12,
-          tasksCompleted: 1,
-          totalTasks: 2,
-          lastActivity: "Hace 4h",
-          children: [
-            {
-              id: "2-1-1",
-              name: "Wireframes y mockups",
-              type: "task",
-              parentId: "2-1",
-              totalHours: 28,
-              lastActivity: "Hace 1 semana",
-            },
-            {
-              id: "2-1-2",
-              name: "Desarrollo frontend",
-              type: "task",
-              parentId: "2-1",
-              totalHours: 40,
-              lastActivity: "Hace 4h",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: "3",
-      name: "Freelance",
-      type: "client",
-      totalHours: 23,
-      hoursThisWeek: 4,
-      lastActivity: "Hace 2 días",
-      children: [
-        {
-          id: "3-1",
-          name: "Landing Page Cliente X",
-          type: "project",
-          parentId: "3",
-          totalHours: 23,
-          hoursThisWeek: 4,
-          tasksCompleted: 0,
-          totalTasks: 1,
-          lastActivity: "Hace 2 días",
-          children: [
-            {
-              id: "3-1-1",
-              name: "Diseño responsive",
-              type: "task",
-              parentId: "3-1",
-              totalHours: 23,
-              lastActivity: "Hace 2 días",
-            },
-          ],
-        },
-      ],
-    },
-  ];
 
   const toggleNode = (nodeId: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -268,10 +65,10 @@ export function ProjectsView() {
     setShowDialog(true);
   };
 
-  const filterProjects = (nodes: ProjectNode[], query: string): ProjectNode[] => {
+  const filterProjects = (nodes: TreeNode[], query: string): TreeNode[] => {
     if (!query.trim()) return nodes;
     
-    return nodes.reduce((acc: ProjectNode[], node: ProjectNode) => {
+    return nodes.reduce((acc: TreeNode[], node: TreeNode) => {
       const matchesDirectly = node.name.toLowerCase().includes(query.toLowerCase());
       const filteredChildren = node.children 
         ? filterProjects(node.children, query)
@@ -285,10 +82,10 @@ export function ProjectsView() {
       }
       
       return acc;
-    }, [] as ProjectNode[]);
+    }, [] as TreeNode[]);
   };
 
-  const filteredProjects = filterProjects(projects, searchQuery);
+  const filteredProjects = filterProjects(tree, searchQuery);
 
   const getIcon = (type: "client" | "project" | "task") => {
     switch (type) {
@@ -312,7 +109,7 @@ export function ProjectsView() {
     }
   };
 
-  const countChildren = (node: ProjectNode): { projects: number; tasks: number } => {
+  const countChildren = (node: TreeNode): { projects: number; tasks: number } => {
     let projects = 0;
     let tasks = 0;
     
@@ -331,7 +128,7 @@ export function ProjectsView() {
     return { projects, tasks };
   };
 
-  const renderNode = (node: ProjectNode, level: number = 0) => {
+  const renderNode = (node: TreeNode, level: number = 0) => {
     const isExpanded = expandedNodes.has(node.id);
     const hasChildren = node.children && node.children.length > 0;
     const counts = countChildren(node);
@@ -419,7 +216,7 @@ export function ProjectsView() {
           {/* Time tracked */}
           <div className="flex items-center gap-1 text-xs text-gray-500 shrink-0">
             <Clock className="h-3 w-3" />
-            <span className="font-medium">{node.totalHours}h</span>
+            <span className="font-medium">{node.totalTime || 0}h</span>
           </div>
 
           {/* Last activity */}
@@ -490,9 +287,14 @@ export function ProjectsView() {
   };
 
   // Calculate totals for header stats
-  const totalHours = projects.reduce((sum, p) => sum + (p.totalHours || 0), 0);
-  const totalClients = projects.length;
-  const totalProjects = projects.reduce((sum, p) => sum + (p.children?.length || 0), 0);
+  const totalHours = tree.reduce((sum, p) => sum + (p.totalTime || 0), 0);
+  const totalClients = tree.length;
+  const totalProjects = tree.reduce((sum, p) => sum + (p.children?.length || 0), 0);
+
+  // Show loading skeleton
+  if (isLoading) {
+    return <SkeletonProjects />;
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
@@ -513,14 +315,26 @@ export function ProjectsView() {
             </span>
           </div>
         </div>
-        <Button
-          onClick={() => openAddDialog("client")}
-          size="sm"
-          className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-        >
-          <Plus className="h-4 w-4" />
-          Nuevo Cliente
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="show-archived"
+              checked={showArchived}
+              onCheckedChange={setShowArchived}
+            />
+            <Label htmlFor="show-archived" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+              Mostrar archivados
+            </Label>
+          </div>
+          <Button
+            onClick={() => openAddDialog("client")}
+            size="sm"
+            className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo Cliente
+          </Button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -562,12 +376,18 @@ export function ProjectsView() {
         {/* Projects Tree */}
         {filteredProjects.length > 0 ? (
           filteredProjects.map((node) => renderNode(node, 0))
-        ) : (
+        ) : searchQuery ? (
           <div className="text-center py-12">
             <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">
               No se encontraron resultados para &quot;{searchQuery}&quot;
             </p>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 mb-1">No hay clientes creados</p>
+            <p className="text-sm text-gray-400">Crea tu primer cliente para empezar</p>
           </div>
         )}
       </div>
