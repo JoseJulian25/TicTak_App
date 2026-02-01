@@ -22,9 +22,9 @@ export const UNNAMED_TASK_ID = '__unnamed__';
  * Configuración del Timer
  */
 export const TIMER_CONFIG = {
-  // Umbral para detectar suspensión/cierre de app (3 minutos en ms)
+  // Umbral para detectar suspensión/cierre de app (1 hora en ms)
   // Si el gap entre lastTickTimestamp y ahora es mayor a esto, se muestra modal
-  BACKGROUND_DETECTION_THRESHOLD: 3 * 60 * 1000, // 3 minutos
+  BACKGROUND_DETECTION_THRESHOLD: 60 * 60 * 1000, // 1 hora
   
   // Intervalo de ejecución del tick (1 segundo)
   TICK_INTERVAL: 1000,
