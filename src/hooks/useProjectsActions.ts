@@ -3,6 +3,12 @@ import { useClientStore } from "@/stores/useClientStore";
 import { useProjectStore } from "@/stores/useProjectStore";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { toast } from "sonner";
+import {
+  validateEmptyName,
+  validateClientName,
+  validateProjectName,
+  validateTaskName,
+} from "@/lib/project-validations";
 
 export function useProjectsActions() {
   const addClient = useClientStore((state) => state.addClient);
@@ -23,46 +29,6 @@ export function useProjectsActions() {
     setErrorMessage("");
   };
 
-  // Funciones de validación reutilizables
-  const validateEmptyName = (name: string): string | null => {
-    if (!name.trim()) {
-      return "El nombre no puede estar vacío";
-    }
-    return null;
-  };
-
-  const validateClientName = (name: string, excludeId?: string): string | null => {
-    const existingClient = clients.find(
-      (c) =>
-        c.id !== excludeId &&
-        c.name.toLowerCase() === name.toLowerCase() &&
-        !c.isArchived
-    );
-    return existingClient ? "Ya existe un cliente con ese nombre" : null;
-  };
-
-  const validateProjectName = (name: string, clientId: string, excludeId?: string): string | null => {
-    const existingProject = projects.find(
-      (p) =>
-        p.id !== excludeId &&
-        p.clientId === clientId &&
-        p.name.toLowerCase() === name.toLowerCase() &&
-        !p.isArchived
-    );
-    return existingProject ? "Ya existe un proyecto con ese nombre en este cliente" : null;
-  };
-
-  const validateTaskName = (name: string, projectId: string, excludeId?: string): string | null => {
-    const existingTask = tasks.find(
-      (t) =>
-        t.id !== excludeId &&
-        t.projectId === projectId &&
-        t.name.toLowerCase() === name.toLowerCase() &&
-        !t.isArchived
-    );
-    return existingTask ? "Ya existe una tarea con ese nombre en este proyecto" : null;
-  };
-
   const handleCreateClient = async (
     onSuccess: (newElementId: string, parentIds: string[]) => void
   ) => {
@@ -74,7 +40,7 @@ export function useProjectsActions() {
       return;
     }
 
-    const duplicateError = validateClientName(trimmedName);
+    const duplicateError = validateClientName(trimmedName, clients);
     if (duplicateError) {
       setErrorMessage(duplicateError);
       return;
@@ -108,7 +74,7 @@ export function useProjectsActions() {
       return;
     }
 
-    const duplicateError = validateProjectName(trimmedName, clientId);
+    const duplicateError = validateProjectName(trimmedName, clientId, projects);
     if (duplicateError) {
       setErrorMessage(duplicateError);
       return;
@@ -148,7 +114,7 @@ export function useProjectsActions() {
       return;
     }
 
-    const duplicateError = validateTaskName(trimmedName, projectId);
+    const duplicateError = validateTaskName(trimmedName, projectId, tasks);
     if (duplicateError) {
       setErrorMessage(duplicateError);
       return;
@@ -190,7 +156,7 @@ export function useProjectsActions() {
       return;
     }
 
-    const duplicateError = validateClientName(trimmedName, clientId);
+    const duplicateError = validateClientName(trimmedName, clients, clientId);
     if (duplicateError) {
       setErrorMessage(duplicateError);
       return;
@@ -225,7 +191,7 @@ export function useProjectsActions() {
       return;
     }
 
-    const duplicateError = validateProjectName(trimmedName, clientId, projectId);
+    const duplicateError = validateProjectName(trimmedName, clientId, projects, projectId);
     if (duplicateError) {
       setErrorMessage(duplicateError);
       return;
@@ -262,7 +228,7 @@ export function useProjectsActions() {
       return;
     }
 
-    const duplicateError = validateTaskName(trimmedName, projectId, taskId);
+    const duplicateError = validateTaskName(trimmedName, projectId, tasks, taskId);
     if (duplicateError) {
       setErrorMessage(duplicateError);
       return;
