@@ -6,6 +6,7 @@ import { useProjectTreeForProjects } from "@/hooks/useProjectTreeForProjects";
 import { useProjectsActions } from "@/hooks/useProjectsActions";
 import { useProjectSearch } from "@/hooks/useProjectSearch";
 import { useProjectDialogs } from "@/hooks/useProjectDialogs";
+import { useTaskStore } from "@/stores/useTaskStore";
 import { SkeletonProjects } from "@/components/skeletons/SkeletonProjects";
 import { ProjectNodeItem } from "@/components/ProjectNodeItem";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import { Label } from "@/components/ui/label";
 export function ProjectsView() {
   const { tree, isLoading } = useProjectTreeForProjects(false);
   const { searchQuery, setSearchQuery, filteredProjects, matchingIds } = useProjectSearch(tree);
+  const { updateTask } = useTaskStore();
   const {
     showDialog,
     setShowDialog,
@@ -79,6 +81,25 @@ export function ProjectsView() {
       }
       return newSet;
     });
+  };
+
+  const handleToggleComplete = (taskId: string) => {
+    // Buscar la tarea en el árbol para obtener su estado actual
+    const findTask = (nodes: typeof tree): typeof tree[0] | null => {
+      for (const node of nodes) {
+        if (node.id === taskId && node.type === "task") return node;
+        if (node.children) {
+          const found = findTask(node.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const task = findTask(tree);
+    if (task) {
+      updateTask(taskId, { isCompleted: !task.isCompleted });
+    }
   };
 
   // Auto-expandir nodos que contienen resultados de búsqueda
@@ -186,6 +207,9 @@ export function ProjectsView() {
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
             Proyectos
           </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+            Organiza tus clientes, proyectos y tareas
+          </p>
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <span>{totalClients} clientes</span>
             <span>•</span>
@@ -258,6 +282,7 @@ export function ProjectsView() {
               onAddChild={openAddDialog}
               onEdit={openEditDialog}
               onDelete={openDeleteDialog}
+              onToggleComplete={handleToggleComplete}
             />
           ))
         ) : searchQuery ? (
