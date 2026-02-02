@@ -14,7 +14,6 @@ import {
   X,
   Pencil,
   Trash2,
-  Archive
 } from "lucide-react";
 import { TreeNode } from "@/types";
 import { useProjectTreeForProjects } from "@/hooks/useProjectTreeForProjects";
@@ -38,11 +37,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 
 export function ProjectsView() {
-  const [showArchived, setShowArchived] = useState(false);
-  const { tree, isLoading } = useProjectTreeForProjects(showArchived);
+  const { tree, isLoading } = useProjectTreeForProjects(false);
   const {
     newItemName,
     setNewItemName,
@@ -337,10 +334,6 @@ export function ProjectsView() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archivar
-                </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Eliminar
@@ -390,16 +383,6 @@ export function ProjectsView() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Switch
-              id="show-archived"
-              checked={showArchived}
-              onCheckedChange={setShowArchived}
-            />
-            <Label htmlFor="show-archived" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-              Mostrar archivados
-            </Label>
-          </div>
           <Button
             onClick={() => openAddDialog("client")}
             size="sm"
