@@ -7,6 +7,7 @@ import { useProjectsActions } from "@/hooks/useProjectsActions";
 import { useProjectSearch } from "@/hooks/useProjectSearch";
 import { useProjectDialogs } from "@/hooks/useProjectDialogs";
 import { useTaskStore } from "@/stores/useTaskStore";
+import { formatDuration } from "@/lib/time-utils";
 import { SkeletonProjects } from "@/components/skeletons/SkeletonProjects";
 import { ProjectNodeItem } from "@/components/ProjectNodeItem";
 import { Button } from "@/components/ui/button";
@@ -115,7 +116,9 @@ export function ProjectsView() {
 
   // Pre-llenar el nombre cuando se abre en modo edit
   useEffect(() => {
-    if (showDialog && isEditMode && editingNodeId) {
+    if (!showDialog) return;
+
+    if (isEditMode && editingNodeId) {
       const findNode = (nodes: typeof tree): typeof tree[0] | null => {
         for (const node of nodes) {
           if (node.id === editingNodeId) return node;
@@ -131,10 +134,10 @@ export function ProjectsView() {
         setNewItemName(node.name);
         setErrorMessage("");
       }
-    } else if (showDialog && !isEditMode) {
+    } else if (!isEditMode) {
       resetForm();
     }
-  }, [showDialog, isEditMode, editingNodeId, tree, setNewItemName, setErrorMessage, resetForm]);
+  }, [showDialog, isEditMode, editingNodeId]);
 
   const handleConfirmDelete = () => {
     if (!nodeToDelete) return;
@@ -190,7 +193,9 @@ export function ProjectsView() {
   };
 
   // Calculate totals for header stats
-  const totalHours = tree.reduce((sum, p) => sum + (p.totalTime || 0), 0);
+  // totalTime is stored in seconds, so convert to hours or minutes
+  const totalSeconds = tree.reduce((sum, p) => sum + (p.totalTime || 0), 0);
+  const totalTimeDisplay = formatDuration(totalSeconds);
   const totalClients = tree.length;
   const totalProjects = tree.reduce((sum, p) => sum + (p.children?.length || 0), 0);
 
@@ -217,7 +222,7 @@ export function ProjectsView() {
             <span>•</span>
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              {totalHours}h total
+              {totalTimeDisplay} total
             </span>
           </div>
         </div>

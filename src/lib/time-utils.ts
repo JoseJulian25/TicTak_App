@@ -1,4 +1,3 @@
-
 // Helper: Convierte segundos totales a componentes de tiempo
 function getTimeParts(totalSeconds: number) {
     return {

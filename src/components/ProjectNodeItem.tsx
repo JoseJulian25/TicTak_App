@@ -10,6 +10,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import { formatDuration } from "@/lib/time-utils";
 import { TreeNode } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ interface ProjectNodeItemProps {
   onDelete: (node: TreeNode, type: "client" | "project" | "task") => void;
   onToggleComplete?: (taskId: string) => void;
 }
+
 
 const getIcon = (type: "client" | "project" | "task") => {
   switch (type) {
@@ -192,7 +194,7 @@ export function ProjectNodeItem({
         {/* Time tracked - visible en móvil con tamaño compacto */}
         <div className="flex items-center gap-0.5 sm:gap-1 text-xs text-gray-500 shrink-0">
           <Clock className="h-3 w-3" />
-          <span className="font-medium text-[10px] sm:text-xs">{node.totalTime || 0}h</span>
+          <span className="font-medium text-[10px] sm:text-xs">{formatDuration(node.totalTime || 0)}</span>
         </div>
 
         {/* Last activity */}

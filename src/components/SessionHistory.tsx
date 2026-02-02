@@ -80,7 +80,7 @@ export const SessionHistory = memo(function SessionHistory() {
   };
 
   return (
-    <div className="w-full max-w-4xl mt-12 px-4 md:px-0">
+    <div className="w-full max-w-4xl mt-12 px-1 md:px-0">
       <div className="mb-4 flex items-center gap-2 text-gray-700 dark:text-gray-300">
         <Clock className="h-5 w-5" />
         <h2 className="text-lg font-semibold">Historial de Hoy</h2>
@@ -99,40 +99,38 @@ export const SessionHistory = memo(function SessionHistory() {
               {enrichedSessions.map((session) => (
               <div
                 key={session.id}
-                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex flex-col sm:flex-row items-start sm:items-center gap-4 border-b border-gray-200 dark:border-gray-700"
+                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors grid grid-cols-[4px_1fr_auto] items-center gap-4 border-b border-gray-200 dark:border-gray-700"
               >
-                {/* Project indicator with color */}
+                {/* Project indicator with color - visible en todas las pantallas */}
                 <div 
-                  className="w-1 h-16 rounded-full hidden sm:block" 
+                  className="w-1 h-16 rounded-full" 
                   style={{ 
-                    background: session.projectColor 
-                      ? `linear-gradient(to bottom, ${session.projectColor}, ${session.projectColor}dd)` 
-                      : 'linear-gradient(to bottom, #3b82f6, #8b5cf6)' 
+                    background: "linear-gradient(to bottom, #3b82f6, #8b5cf6)"
                   }}
                 />
                 
-                {/* Project info */}
-                <div className="flex-1 min-w-0">
+                {/* Project info - este div DEBE poder encogerse */}
+                <div className="min-w-0">
                   <div className="font-medium text-gray-900 dark:text-gray-100 mb-1 truncate">
                     {session.taskName}
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-1 truncate">
                     {session.projectPath}
                   </div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500">
+                  <div className="text-xs text-gray-400 dark:text-gray-500 truncate">
                     {formatTime(session.startTime)} - {formatTime(session.endTime)}
                   </div>
                   {session.notes && (
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic truncate">
                       "{session.notes}"
                     </div>
                   )}
                 </div>
 
-                {/* Duration and actions */}
-                <div className="flex items-center gap-3">
+                {/* Duration and actions - estos NO deben encogerse nunca */}
+                <div className="flex items-center gap-2">
                   <div className="text-right">
-                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <div className="text-sm sm:text-md font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                       {formatDuration(session.duration)}
                     </div>
                   </div>
