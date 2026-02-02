@@ -13,12 +13,15 @@ import {
 export function useProjectsActions() {
   const addClient = useClientStore((state) => state.addClient);
   const updateClient = useClientStore((state) => state.updateClient);
+  const hardDeleteClient = useClientStore((state) => state.hardDeleteClient);
   const clients = useClientStore((state) => state.clients);
   const addProject = useProjectStore((state) => state.addProject);
   const updateProject = useProjectStore((state) => state.updateProject);
+  const hardDeleteProject = useProjectStore((state) => state.hardDeleteProject);
   const projects = useProjectStore((state) => state.projects);
   const addTask = useTaskStore((state) => state.addTask);
   const updateTask = useTaskStore((state) => state.updateTask);
+  const deleteTask = useTaskStore((state) => state.deleteTask);
   const tasks = useTaskStore((state) => state.tasks);
 
   const [newItemName, setNewItemName] = useState("");
@@ -252,6 +255,51 @@ export function useProjectsActions() {
     }
   };
 
+  const handleDeleteClient = (clientId: string, clientName: string) => {
+    try {
+      hardDeleteClient(clientId);
+
+      toast.success("Cliente eliminado", {
+        description: `"${clientName}" y todos sus proyectos y tareas fueron eliminados`,
+      });
+    } catch (error) {
+      console.error("Error al eliminar cliente:", error);
+      toast.error("Error al eliminar", {
+        description: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
+  };
+
+  const handleDeleteProject = (projectId: string, projectName: string) => {
+    try {
+      hardDeleteProject(projectId);
+
+      toast.success("Proyecto eliminado", {
+        description: `"${projectName}" y todas sus tareas fueron eliminadas`,
+      });
+    } catch (error) {
+      console.error("Error al eliminar proyecto:", error);
+      toast.error("Error al eliminar", {
+        description: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
+  };
+
+  const handleDeleteTask = (taskId: string, taskName: string) => {
+    try {
+      deleteTask(taskId);
+
+      toast.success("Tarea eliminada", {
+        description: `"${taskName}" fue eliminada exitosamente`,
+      });
+    } catch (error) {
+      console.error("Error al eliminar tarea:", error);
+      toast.error("Error al eliminar", {
+        description: error instanceof Error ? error.message : "Error desconocido",
+      });
+    }
+  };
+
   return {
     newItemName,
     setNewItemName,
@@ -264,5 +312,8 @@ export function useProjectsActions() {
     handleEditClient,
     handleEditProject,
     handleEditTask,
+    handleDeleteClient,
+    handleDeleteProject,
+    handleDeleteTask,
   };
 }

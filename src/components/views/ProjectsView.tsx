@@ -29,6 +29,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -52,6 +62,9 @@ export function ProjectsView() {
     handleEditClient,
     handleEditProject,
     handleEditTask,
+    handleDeleteClient,
+    handleDeleteProject,
+    handleDeleteTask,
   } = useProjectsActions();
   
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -62,6 +75,11 @@ export function ProjectsView() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingNodeId, setEditingNodeId] = useState<string>("");
   const [editingNodeType, setEditingNodeType] = useState<"client" | "project" | "task">("client");
+  
+  // Estados para AlertDialog de eliminación
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [nodeToDelete, setNodeToDelete] = useState<TreeNode | null>(null);
+  const [deleteType, setDeleteType] = useState<"client" | "project" | "task">("client");
 
   const toggleNode = (nodeId: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -90,6 +108,27 @@ export function ProjectsView() {
     setNewItemName(node.name);
     setErrorMessage("");
     setShowDialog(true);
+  };
+
+  const openDeleteDialog = (node: TreeNode, type: "client" | "project" | "task") => {
+    setNodeToDelete(node);
+    setDeleteType(type);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!nodeToDelete) return;
+
+    if (deleteType === "client") {
+      handleDeleteClient(nodeToDelete.id, nodeToDelete.name);
+    } else if (deleteType === "project") {
+      handleDeleteProject(nodeToDelete.id, nodeToDelete.name);
+    } else if (deleteType === "task") {
+      handleDeleteTask(nodeToDelete.id, nodeToDelete.name);
+    }
+
+    setShowDeleteDialog(false);
+    setNodeToDelete(null);
   };
 
   const handleCreate = async () => {
@@ -334,7 +373,13 @@ export function ProjectsView() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600">
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openDeleteDialog(node, node.type);
+                  }}
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Eliminar
                 </DropdownMenuItem>
@@ -499,6 +544,57 @@ export function ProjectsView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {nodeToDelete && (
+                <>
+                  {deleteType === "client" && (
+                    <>
+                      Estás a punto de eliminar el cliente <strong>{nodeToDelete.name}</strong>.
+                      {nodeToDelete.children && nodeToDelete.children.length > 0 && (
+                        <>
+                          {" "}Esto también eliminará <strong>{nodeToDelete.children.length} proyecto(s)</strong> y todas sus tareas asociadas.
+                        </>
+                      )}
+                    </>
+                  )}
+                  {deleteType === "project" && (
+                    <>
+                      Estás a punto de eliminar el proyecto <strong>{nodeToDelete.name}</strong>.
+                      {nodeToDelete.children && nodeToDelete.children.length > 0 && (
+                        <>
+                          {" "}Esto también eliminará <strong>{nodeToDelete.children.length} tarea(s)</strong> asociadas.
+                        </>
+                      )}
+                    </>
+                  )}
+                  {deleteType === "task" && (
+                    <>
+                      Estás a punto de eliminar la tarea <strong>{nodeToDelete.name}</strong>.
+                    </>
+                  )}
+                  <br /><br />
+                  Esta acción no se puede deshacer.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
