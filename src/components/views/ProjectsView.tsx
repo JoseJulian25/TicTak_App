@@ -1,24 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { 
-  Plus, 
-  MoreHorizontal, 
-  Clock, 
-  ChevronDown, 
-  ChevronRight, 
-  Building2, 
-  FolderKanban, 
-  CheckSquare, 
-  Search, 
-  X,
-  Pencil,
-  Trash2,
-} from "lucide-react";
-import { TreeNode } from "@/types";
+import { useState, useEffect } from "react";
+import { Plus, Clock, Building2, Search, X } from "lucide-react";
 import { useProjectTreeForProjects } from "@/hooks/useProjectTreeForProjects";
 import { useProjectsActions } from "@/hooks/useProjectsActions";
+import { useProjectSearch } from "@/hooks/useProjectSearch";
+import { useProjectDialogs } from "@/hooks/useProjectDialogs";
 import { SkeletonProjects } from "@/components/skeletons/SkeletonProjects";
+import { ProjectNodeItem } from "@/components/ProjectNodeItem";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,18 +27,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function ProjectsView() {
   const { tree, isLoading } = useProjectTreeForProjects(false);
+  const { searchQuery, setSearchQuery, filteredProjects, matchingIds } = useProjectSearch(tree);
+  const {
+    showDialog,
+    setShowDialog,
+    dialogType,
+    selectedParentId,
+    isEditMode,
+    editingNodeId,
+    editingNodeType,
+    openAddDialog,
+    openEditDialog,
+    showDeleteDialog,
+    nodeToDelete,
+    deleteType,
+    openDeleteDialog,
+    closeDeleteDialog,
+  } = useProjectDialogs();
+  
   const {
     newItemName,
     setNewItemName,
@@ -68,53 +68,52 @@ export function ProjectsView() {
   } = useProjectsActions();
   
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [showDialog, setShowDialog] = useState(false);
-  const [dialogType, setDialogType] = useState<"client" | "project" | "task">("client");
-  const [selectedParentId, setSelectedParentId] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingNodeId, setEditingNodeId] = useState<string>("");
-  const [editingNodeType, setEditingNodeType] = useState<"client" | "project" | "task">("client");
-  
-  // Estados para AlertDialog de eliminación
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [nodeToDelete, setNodeToDelete] = useState<TreeNode | null>(null);
-  const [deleteType, setDeleteType] = useState<"client" | "project" | "task">("client");
 
   const toggleNode = (nodeId: string) => {
-    const newExpanded = new Set(expandedNodes);
-    if (newExpanded.has(nodeId)) {
-      newExpanded.delete(nodeId);
-    } else {
-      newExpanded.add(nodeId);
+    setExpandedNodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  };
+
+  // Auto-expandir nodos que contienen resultados de búsqueda
+  useEffect(() => {
+    if (searchQuery.trim() && matchingIds.size > 0) {
+      setExpandedNodes((prev) => {
+        const newSet = new Set(prev);
+        matchingIds.forEach((id) => newSet.add(id));
+        return newSet;
+      });
     }
-    setExpandedNodes(newExpanded);
-  };
+  }, [searchQuery, matchingIds]);
 
-  const openAddDialog = (type: "client" | "project" | "task", parentId?: string) => {
-    setDialogType(type);
-    setSelectedParentId(parentId || "");
-    setIsEditMode(false);
-    resetForm();
-    setShowDialog(true);
-  };
-
-  const openEditDialog = (node: TreeNode, type: "client" | "project" | "task", parentId?: string) => {
-    setEditingNodeId(node.id);
-    setEditingNodeType(type);
-    setDialogType(type);
-    setSelectedParentId(parentId || "");
-    setIsEditMode(true);
-    setNewItemName(node.name);
-    setErrorMessage("");
-    setShowDialog(true);
-  };
-
-  const openDeleteDialog = (node: TreeNode, type: "client" | "project" | "task") => {
-    setNodeToDelete(node);
-    setDeleteType(type);
-    setShowDeleteDialog(true);
-  };
+  // Pre-llenar el nombre cuando se abre en modo edit
+  useEffect(() => {
+    if (showDialog && isEditMode && editingNodeId) {
+      const findNode = (nodes: typeof tree): typeof tree[0] | null => {
+        for (const node of nodes) {
+          if (node.id === editingNodeId) return node;
+          if (node.children) {
+            const found = findNode(node.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const node = findNode(tree);
+      if (node) {
+        setNewItemName(node.name);
+        setErrorMessage("");
+      }
+    } else if (showDialog && !isEditMode) {
+      resetForm();
+    }
+  }, [showDialog, isEditMode, editingNodeId, tree, setNewItemName, setErrorMessage, resetForm]);
 
   const handleConfirmDelete = () => {
     if (!nodeToDelete) return;
@@ -127,8 +126,7 @@ export function ProjectsView() {
       handleDeleteTask(nodeToDelete.id, nodeToDelete.name);
     }
 
-    setShowDeleteDialog(false);
-    setNodeToDelete(null);
+    closeDeleteDialog();
   };
 
   const handleCreate = async () => {
@@ -168,234 +166,6 @@ export function ProjectsView() {
         await handleCreateTask(selectedParentId, onSuccess);
       }
     }
-  };
-
-  const filterProjects = (nodes: TreeNode[], query: string): TreeNode[] => {
-    if (!query.trim()) return nodes;
-    
-    return nodes.reduce((acc: TreeNode[], node: TreeNode) => {
-      const matchesDirectly = node.name.toLowerCase().includes(query.toLowerCase());
-      const filteredChildren = node.children 
-        ? filterProjects(node.children, query)
-        : [];
-      
-      if (matchesDirectly || filteredChildren.length > 0) {
-        acc.push({
-          ...node,
-          children: filteredChildren.length > 0 ? filteredChildren : node.children
-        });
-      }
-      
-      return acc;
-    }, [] as TreeNode[]);
-  };
-
-  const filteredProjects = filterProjects(tree, searchQuery);
-
-  const getIcon = (type: "client" | "project" | "task") => {
-    switch (type) {
-      case "client":
-        return <Building2 className="h-4 w-4" />;
-      case "project":
-        return <FolderKanban className="h-4 w-4" />;
-      case "task":
-        return <CheckSquare className="h-4 w-4" />;
-    }
-  };
-
-  const getIconColor = (type: "client" | "project" | "task") => {
-    switch (type) {
-      case "client":
-        return "text-blue-500";
-      case "project":
-        return "text-purple-500";
-      case "task":
-        return "text-green-500";
-    }
-  };
-
-  const countChildren = (node: TreeNode): { projects: number; tasks: number } => {
-    let projects = 0;
-    let tasks = 0;
-    
-    if (node.children) {
-      node.children.forEach(child => {
-        if (child.type === "project") {
-          projects++;
-          const subCounts = countChildren(child);
-          tasks += subCounts.tasks;
-        } else if (child.type === "task") {
-          tasks++;
-        }
-      });
-    }
-    
-    return { projects, tasks };
-  };
-
-  const renderNode = (node: TreeNode, level: number = 0, parentId: string = "") => {
-    const isExpanded = expandedNodes.has(node.id);
-    const hasChildren = node.children && node.children.length > 0;
-    const counts = countChildren(node);
-
-    // Padding progresivo según nivel
-    const paddingLeft = level === 0 ? 12 : level === 1 ? 32 : 52;
-
-    return (
-      <div key={node.id}>
-        {/* Node Item */}
-        <div
-          className={`
-            group flex items-center gap-2 py-2.5 px-3 
-            hover:bg-gray-100 dark:hover:bg-gray-800 
-            border-b border-gray-100 dark:border-gray-800
-            transition-colors cursor-pointer
-            ${level === 0 ? 'bg-gray-50/50 dark:bg-gray-900/50' : ''}
-          `}
-          style={{ paddingLeft: `${paddingLeft}px` }}
-        >
-          {/* Expand/Collapse */}
-          {hasChildren ? (
-            <button
-              onClick={() => toggleNode(node.id)}
-              className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded shrink-0"
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-gray-500" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-gray-500" />
-              )}
-            </button>
-          ) : (
-            <div className="w-5" />
-          )}
-
-          {/* Icon */}
-          <span className={`shrink-0 ${getIconColor(node.type)}`}>
-            {getIcon(node.type)}
-          </span>
-
-          {/* Name & Info */}
-          <div className="flex-1 min-w-0 flex items-center gap-3">
-            <span className={`
-              truncate
-              ${level === 0 ? 'font-semibold text-gray-900 dark:text-gray-100' : ''}
-              ${level === 1 ? 'font-medium text-gray-800 dark:text-gray-200' : ''}
-              ${level === 2 ? 'text-gray-700 dark:text-gray-300' : ''}
-            `}>
-              {node.name}
-            </span>
-
-            {/* Metadata inline */}
-            <div className="hidden sm:flex items-center gap-3 text-xs text-gray-500 shrink-0">
-              {/* Child counts for clients and projects */}
-              {node.type === "client" && counts.projects > 0 && (
-                <span className="flex items-center gap-1">
-                  <FolderKanban className="h-3 w-3" />
-                  {counts.projects}
-                </span>
-              )}
-              
-              {(node.type === "client" || node.type === "project") && counts.tasks > 0 && (
-                <span className="flex items-center gap-1">
-                  <CheckSquare className="h-3 w-3" />
-                  {counts.tasks}
-                </span>
-              )}
-
-              {/* Progress for projects */}
-              {node.type === "project" && node.totalTasks && (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-green-500 rounded-full"
-                      style={{ width: `${((node.tasksCompleted || 0) / node.totalTasks) * 100}%` }}
-                    />
-                  </div>
-                  <span>{node.tasksCompleted}/{node.totalTasks}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Time tracked */}
-          <div className="flex items-center gap-1 text-xs text-gray-500 shrink-0">
-            <Clock className="h-3 w-3" />
-            <span className="font-medium">{node.totalTime || 0}h</span>
-          </div>
-
-          {/* Last activity */}
-          <span className="hidden lg:block text-xs text-gray-400 shrink-0 w-20 text-right">
-            {node.lastActivity}
-          </span>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-            {node.type !== "task" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openAddDialog(node.type === "client" ? "project" : "task", node.id);
-                }}
-              >
-                <Plus className="h-3.5 w-3.5 text-gray-500" />
-              </Button>
-            )}
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreHorizontal className="h-3.5 w-3.5 text-gray-500" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEditDialog(node, node.type, parentId);
-                  }}
-                >
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Editar
-                </DropdownMenuItem>
-                {node.type !== "task" && (
-                  <DropdownMenuItem>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Agregar {node.type === "client" ? "proyecto" : "tarea"}
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-red-600"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openDeleteDialog(node, node.type);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Eliminar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Children */}
-        {hasChildren && isExpanded && (
-          <div>
-            {node.children!.map((child) => renderNode(child, level + 1, node.id))}
-          </div>
-        )}
-      </div>
-    );
   };
 
   // Calculate totals for header stats
@@ -477,7 +247,19 @@ export function ProjectsView() {
 
         {/* Projects Tree */}
         {filteredProjects.length > 0 ? (
-          filteredProjects.map((node) => renderNode(node, 0))
+          filteredProjects.map((node) => (
+            <ProjectNodeItem
+              key={node.id}
+              node={node}
+              level={0}
+              parentId=""
+              expandedNodes={expandedNodes}
+              onToggle={toggleNode}
+              onAddChild={openAddDialog}
+              onEdit={openEditDialog}
+              onDelete={openDeleteDialog}
+            />
+          ))
         ) : searchQuery ? (
           <div className="text-center py-12">
             <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
@@ -546,7 +328,7 @@ export function ProjectsView() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog open={showDeleteDialog} onOpenChange={closeDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
