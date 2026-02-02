@@ -6,10 +6,13 @@ import { toast } from "sonner";
 
 export function useProjectsActions() {
   const addClient = useClientStore((state) => state.addClient);
+  const updateClient = useClientStore((state) => state.updateClient);
   const clients = useClientStore((state) => state.clients);
   const addProject = useProjectStore((state) => state.addProject);
+  const updateProject = useProjectStore((state) => state.updateProject);
   const projects = useProjectStore((state) => state.projects);
   const addTask = useTaskStore((state) => state.addTask);
+  const updateTask = useTaskStore((state) => state.updateTask);
   const tasks = useTaskStore((state) => state.tasks);
 
   const [newItemName, setNewItemName] = useState("");
@@ -20,26 +23,64 @@ export function useProjectsActions() {
     setErrorMessage("");
   };
 
+  // Funciones de validación reutilizables
+  const validateEmptyName = (name: string): string | null => {
+    if (!name.trim()) {
+      return "El nombre no puede estar vacío";
+    }
+    return null;
+  };
+
+  const validateClientName = (name: string, excludeId?: string): string | null => {
+    const existingClient = clients.find(
+      (c) =>
+        c.id !== excludeId &&
+        c.name.toLowerCase() === name.toLowerCase() &&
+        !c.isArchived
+    );
+    return existingClient ? "Ya existe un cliente con ese nombre" : null;
+  };
+
+  const validateProjectName = (name: string, clientId: string, excludeId?: string): string | null => {
+    const existingProject = projects.find(
+      (p) =>
+        p.id !== excludeId &&
+        p.clientId === clientId &&
+        p.name.toLowerCase() === name.toLowerCase() &&
+        !p.isArchived
+    );
+    return existingProject ? "Ya existe un proyecto con ese nombre en este cliente" : null;
+  };
+
+  const validateTaskName = (name: string, projectId: string, excludeId?: string): string | null => {
+    const existingTask = tasks.find(
+      (t) =>
+        t.id !== excludeId &&
+        t.projectId === projectId &&
+        t.name.toLowerCase() === name.toLowerCase() &&
+        !t.isArchived
+    );
+    return existingTask ? "Ya existe una tarea con ese nombre en este proyecto" : null;
+  };
+
   const handleCreateClient = async (
     onSuccess: (newElementId: string, parentIds: string[]) => void
   ) => {
     const trimmedName = newItemName.trim();
 
-    if (!trimmedName) {
-      setErrorMessage("El nombre no puede estar vacío");
+    const emptyError = validateEmptyName(trimmedName);
+    if (emptyError) {
+      setErrorMessage(emptyError);
+      return;
+    }
+
+    const duplicateError = validateClientName(trimmedName);
+    if (duplicateError) {
+      setErrorMessage(duplicateError);
       return;
     }
 
     try {
-
-      const existingClient = clients.find(
-        (c) => c.name.toLowerCase() === trimmedName.toLowerCase() && !c.isArchived
-      );
-
-      if (existingClient) {
-        setErrorMessage("Ya existe un cliente con ese nombre");
-        return;
-      }
 
       const newClient = addClient({ name: trimmedName });
 
@@ -61,24 +102,19 @@ export function useProjectsActions() {
   ) => {
     const trimmedName = newItemName.trim();
 
-    if (!trimmedName) {
-      setErrorMessage("El nombre no puede estar vacío");
+    const emptyError = validateEmptyName(trimmedName);
+    if (emptyError) {
+      setErrorMessage(emptyError);
+      return;
+    }
+
+    const duplicateError = validateProjectName(trimmedName, clientId);
+    if (duplicateError) {
+      setErrorMessage(duplicateError);
       return;
     }
 
     try {
-
-      const existingProject = projects.find(
-        (p) =>
-          p.clientId === clientId &&
-          p.name.toLowerCase() === trimmedName.toLowerCase() &&
-          !p.isArchived
-      );
-
-      if (existingProject) {
-        setErrorMessage("Ya existe un proyecto con ese nombre en este cliente");
-        return;
-      }
 
       const newProject = await addProject({
         name: trimmedName,
@@ -106,24 +142,19 @@ export function useProjectsActions() {
   ) => {
     const trimmedName = newItemName.trim();
 
-    if (!trimmedName) {
-      setErrorMessage("El nombre no puede estar vacío");
+    const emptyError = validateEmptyName(trimmedName);
+    if (emptyError) {
+      setErrorMessage(emptyError);
+      return;
+    }
+
+    const duplicateError = validateTaskName(trimmedName, projectId);
+    if (duplicateError) {
+      setErrorMessage(duplicateError);
       return;
     }
 
     try {
-
-      const existingTask = tasks.find(
-        (t) =>
-          t.projectId === projectId &&
-          t.name.toLowerCase() === trimmedName.toLowerCase() &&
-          !t.isArchived
-      );
-
-      if (existingTask) {
-        setErrorMessage("Ya existe una tarea con ese nombre en este proyecto");
-        return;
-      }
 
       const newTask = await addTask({
         name: trimmedName,
@@ -147,6 +178,114 @@ export function useProjectsActions() {
     }
   };
 
+  const handleEditClient = async (
+    clientId: string,
+    onSuccess: () => void
+  ) => {
+    const trimmedName = newItemName.trim();
+
+    const emptyError = validateEmptyName(trimmedName);
+    if (emptyError) {
+      setErrorMessage(emptyError);
+      return;
+    }
+
+    const duplicateError = validateClientName(trimmedName, clientId);
+    if (duplicateError) {
+      setErrorMessage(duplicateError);
+      return;
+    }
+
+    try {
+
+      updateClient(clientId, { name: trimmedName });
+
+      toast.success("Cliente actualizado", {
+        description: `"${trimmedName}" fue actualizado exitosamente`,
+      });
+
+      onSuccess();
+      resetForm();
+    } catch (error) {
+      console.error("Error al actualizar cliente:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Error desconocido");
+    }
+  };
+
+  const handleEditProject = async (
+    projectId: string,
+    clientId: string,
+    onSuccess: () => void
+  ) => {
+    const trimmedName = newItemName.trim();
+
+    const emptyError = validateEmptyName(trimmedName);
+    if (emptyError) {
+      setErrorMessage(emptyError);
+      return;
+    }
+
+    const duplicateError = validateProjectName(trimmedName, clientId, projectId);
+    if (duplicateError) {
+      setErrorMessage(duplicateError);
+      return;
+    }
+
+    try {
+
+      updateProject(projectId, { name: trimmedName });
+
+      const parentClient = clients.find((c) => c.id === clientId);
+
+      toast.success("Proyecto actualizado", {
+        description: `"${trimmedName}" fue actualizado${parentClient ? ` en ${parentClient.name}` : ''}`,
+      });
+
+      onSuccess();
+      resetForm();
+    } catch (error) {
+      console.error("Error al actualizar proyecto:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Error desconocido");
+    }
+  };
+
+  const handleEditTask = async (
+    taskId: string,
+    projectId: string,
+    onSuccess: () => void
+  ) => {
+    const trimmedName = newItemName.trim();
+
+    const emptyError = validateEmptyName(trimmedName);
+    if (emptyError) {
+      setErrorMessage(emptyError);
+      return;
+    }
+
+    const duplicateError = validateTaskName(trimmedName, projectId, taskId);
+    if (duplicateError) {
+      setErrorMessage(duplicateError);
+      return;
+    }
+
+    try {
+
+      updateTask(taskId, { name: trimmedName });
+
+      const parentProject = projects.find((p) => p.id === projectId);
+
+      toast.success("Tarea actualizada", {
+        description: `"${trimmedName}" fue actualizada${parentProject ? ` en ${parentProject.name}` : ''}`,
+      });
+
+      onSuccess();
+      resetForm();
+    } catch (error) {
+      console.error("Error al actualizar tarea:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Error desconocido");
+    }
+  };
+
   return {
     newItemName,
     setNewItemName,
@@ -156,5 +295,8 @@ export function useProjectsActions() {
     handleCreateClient,
     handleCreateProject,
     handleCreateTask,
+    handleEditClient,
+    handleEditProject,
+    handleEditTask,
   };
 }

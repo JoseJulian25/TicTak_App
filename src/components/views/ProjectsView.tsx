@@ -52,6 +52,9 @@ export function ProjectsView() {
     handleCreateClient,
     handleCreateProject,
     handleCreateTask,
+    handleEditClient,
+    handleEditProject,
+    handleEditTask,
   } = useProjectsActions();
   
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -59,6 +62,9 @@ export function ProjectsView() {
   const [dialogType, setDialogType] = useState<"client" | "project" | "task">("client");
   const [selectedParentId, setSelectedParentId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingNodeId, setEditingNodeId] = useState<string>("");
+  const [editingNodeType, setEditingNodeType] = useState<"client" | "project" | "task">("client");
 
   const toggleNode = (nodeId: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -73,30 +79,58 @@ export function ProjectsView() {
   const openAddDialog = (type: "client" | "project" | "task", parentId?: string) => {
     setDialogType(type);
     setSelectedParentId(parentId || "");
+    setIsEditMode(false);
     resetForm();
     setShowDialog(true);
   };
 
-  const handleCreate = async () => {
-    const onSuccess = (newElementId: string, parentIds: string[]) => {
-      // Auto-expandir elementos
-      setExpandedNodes((prev) => {
-        const newSet = new Set(prev);
-        parentIds.forEach((id) => newSet.add(id));
-        newSet.add(newElementId);
-        return newSet;
-      });
-      
-      // Cerrar diálogo
-      setShowDialog(false);
-    };
+  const openEditDialog = (node: TreeNode, type: "client" | "project" | "task", parentId?: string) => {
+    setEditingNodeId(node.id);
+    setEditingNodeType(type);
+    setDialogType(type);
+    setSelectedParentId(parentId || "");
+    setIsEditMode(true);
+    setNewItemName(node.name);
+    setErrorMessage("");
+    setShowDialog(true);
+  };
 
-    if (dialogType === "client") {
-      await handleCreateClient(onSuccess);
-    } else if (dialogType === "project") {
-      await handleCreateProject(selectedParentId, onSuccess);
-    } else if (dialogType === "task") {
-      await handleCreateTask(selectedParentId, onSuccess);
+  const handleCreate = async () => {
+    if (isEditMode) {
+      // Modo edición
+      const onSuccess = () => {
+        setShowDialog(false);
+      };
+
+      if (editingNodeType === "client") {
+        await handleEditClient(editingNodeId, onSuccess);
+      } else if (editingNodeType === "project") {
+        await handleEditProject(editingNodeId, selectedParentId, onSuccess);
+      } else if (editingNodeType === "task") {
+        await handleEditTask(editingNodeId, selectedParentId, onSuccess);
+      }
+    } else {
+      // Modo creación
+      const onSuccess = (newElementId: string, parentIds: string[]) => {
+        // Auto-expandir elementos
+        setExpandedNodes((prev) => {
+          const newSet = new Set(prev);
+          parentIds.forEach((id) => newSet.add(id));
+          newSet.add(newElementId);
+          return newSet;
+        });
+        
+        // Cerrar diálogo
+        setShowDialog(false);
+      };
+
+      if (dialogType === "client") {
+        await handleCreateClient(onSuccess);
+      } else if (dialogType === "project") {
+        await handleCreateProject(selectedParentId, onSuccess);
+      } else if (dialogType === "task") {
+        await handleCreateTask(selectedParentId, onSuccess);
+      }
     }
   };
 
@@ -163,7 +197,7 @@ export function ProjectsView() {
     return { projects, tasks };
   };
 
-  const renderNode = (node: TreeNode, level: number = 0) => {
+  const renderNode = (node: TreeNode, level: number = 0, parentId: string = "") => {
     const isExpanded = expandedNodes.has(node.id);
     const hasChildren = node.children && node.children.length > 0;
     const counts = countChildren(node);
@@ -287,7 +321,12 @@ export function ProjectsView() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditDialog(node, node.type, parentId);
+                  }}
+                >
                   <Pencil className="h-4 w-4 mr-2" />
                   Editar
                 </DropdownMenuItem>
@@ -314,7 +353,7 @@ export function ProjectsView() {
         {/* Children */}
         {hasChildren && isExpanded && (
           <div>
-            {node.children!.map((child) => renderNode(child, level + 1))}
+            {node.children!.map((child) => renderNode(child, level + 1, node.id))}
           </div>
         )}
       </div>
@@ -427,19 +466,21 @@ export function ProjectsView() {
         )}
       </div>
 
-      {/* Add Dialog */}
+      {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Agregar {dialogType === "client" ? "Cliente" : dialogType === "project" ? "Proyecto" : "Tarea"}
+              {isEditMode ? "Editar" : "Agregar"} {dialogType === "client" ? "Cliente" : dialogType === "project" ? "Proyecto" : "Tarea"}
             </DialogTitle>
             <DialogDescription>
-              {dialogType === "client" 
-                ? "Crea un nuevo cliente para organizar tus proyectos"
-                : dialogType === "project"
-                ? "Agrega un proyecto al cliente seleccionado"
-                : "Crea una tarea específica dentro del proyecto"}
+              {isEditMode 
+                ? `Modifica el nombre del ${dialogType === "client" ? "cliente" : dialogType === "project" ? "proyecto" : "tarea"}`
+                : dialogType === "client" 
+                  ? "Crea un nuevo cliente para organizar tus proyectos"
+                  : dialogType === "project"
+                  ? "Agrega un proyecto al cliente seleccionado"
+                  : "Crea una tarea específica dentro del proyecto"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -470,7 +511,7 @@ export function ProjectsView() {
               Cancelar
             </Button>
             <Button onClick={handleCreate}>
-              Crear
+              {isEditMode ? "Guardar cambios" : "Crear"}
             </Button>
           </DialogFooter>
         </DialogContent>
