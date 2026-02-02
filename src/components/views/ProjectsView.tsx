@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { TreeNode } from "@/types";
 import { useProjectTreeForProjects } from "@/hooks/useProjectTreeForProjects";
+import { useProjectsActions } from "@/hooks/useProjectsActions";
 import { SkeletonProjects } from "@/components/skeletons/SkeletonProjects";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +43,16 @@ import { Switch } from "@/components/ui/switch";
 export function ProjectsView() {
   const [showArchived, setShowArchived] = useState(false);
   const { tree, isLoading } = useProjectTreeForProjects(showArchived);
+  const {
+    newItemName,
+    setNewItemName,
+    errorMessage,
+    setErrorMessage,
+    resetForm,
+    handleCreateClient,
+    handleCreateProject,
+    handleCreateTask,
+  } = useProjectsActions();
   
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [showDialog, setShowDialog] = useState(false);
@@ -62,7 +73,31 @@ export function ProjectsView() {
   const openAddDialog = (type: "client" | "project" | "task", parentId?: string) => {
     setDialogType(type);
     setSelectedParentId(parentId || "");
+    resetForm();
     setShowDialog(true);
+  };
+
+  const handleCreate = async () => {
+    const onSuccess = (newElementId: string, parentIds: string[]) => {
+      // Auto-expandir elementos
+      setExpandedNodes((prev) => {
+        const newSet = new Set(prev);
+        parentIds.forEach((id) => newSet.add(id));
+        newSet.add(newElementId);
+        return newSet;
+      });
+      
+      // Cerrar diálogo
+      setShowDialog(false);
+    };
+
+    if (dialogType === "client") {
+      await handleCreateClient(onSuccess);
+    } else if (dialogType === "project") {
+      await handleCreateProject(selectedParentId, onSuccess);
+    } else if (dialogType === "task") {
+      await handleCreateTask(selectedParentId, onSuccess);
+    }
   };
 
   const filterProjects = (nodes: TreeNode[], query: string): TreeNode[] => {
@@ -412,6 +447,11 @@ export function ProjectsView() {
               <Label htmlFor="name">Nombre</Label>
               <Input
                 id="name"
+                value={newItemName}
+                onChange={(e) => {
+                  setNewItemName(e.target.value);
+                  setErrorMessage(""); // Limpiar error al escribir
+                }}
                 placeholder={
                   dialogType === "client"
                     ? "Ej: BanReservas"
@@ -420,13 +460,16 @@ export function ProjectsView() {
                     : "Ej: Implementar API de transacciones"
                 }
               />
+              {errorMessage && (
+                <p className="text-sm text-red-500">{errorMessage}</p>
+              )}
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => setShowDialog(false)}>
+            <Button onClick={handleCreate}>
               Crear
             </Button>
           </DialogFooter>
