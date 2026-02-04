@@ -117,16 +117,6 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
               {node.name}
             </span>
             
-            {/* Badge for node type */}
-            {!canSelect && (
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                node.type === "client"
-                  ? "bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400"
-                  : "bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-400"
-              }`}>
-                {node.type === "client" ? "Cliente" : "Proyecto"}
-              </span>
-            )}
           </div>
 
           {/* Checkmark for selected */}

@@ -1,15 +1,33 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { TreeNode } from '@/types';
 import { useProjectTree } from './useProjectTree';
+import { useProjectSearch } from './useProjectSearch';
 
 /**
  * Hook para manejar el estado y lógica del selector de árbol de proyectos
- * 
+ * Usa useProjectSearch para centralizar la lógica de búsqueda y filtrado
  */
 export const useProjectTreeState = (selectedTaskId: string | null) => {
   const { tree: projects, isLoading } = useProjectTree();
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [searchTerm, setSearchTerm] = useState('');
+  
+  const {
+    searchQuery: searchTerm,
+    setSearchQuery: setSearchTerm,
+    filteredProjects,
+    matchingIds
+  } = useProjectSearch(projects);
+
+  // Auto-expandir nodos que contienen resultados de búsqueda (igual que ProjectsView)
+  useEffect(() => {
+    if (searchTerm.trim() && matchingIds.size > 0) {
+      setExpandedNodes((prev) => {
+        const newSet = new Set(prev);
+        matchingIds.forEach((id) => newSet.add(id));
+        return newSet;
+      });
+    }
+  }, [searchTerm, matchingIds]);
 
   /**
    * Encontrar un nodo por su ID en el árbol
@@ -62,49 +80,6 @@ export const useProjectTreeState = (selectedTaskId: string | null) => {
   };
 
   /**
-   * Filtrar nodos basado en búsqueda
-   */
-  const filterNodes = useMemo(() => {
-    if (!searchTerm) return projects;
-    
-    const nodesToExpand = new Set<string>();
-    
-    const filter = (nodes: TreeNode[]): TreeNode[] => {
-      return nodes.reduce<TreeNode[]>((acc, node) => {
-        const matchesSearch = node.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const filteredChildren = node.children ? filter(node.children) : [];
-        
-        if (matchesSearch || filteredChildren.length > 0) {
-          acc.push({
-            ...node,
-            children: filteredChildren.length > 0 ? filteredChildren : node.children,
-          });
-          
-          // Marcar para auto-expandir
-          if (filteredChildren.length > 0 || matchesSearch) {
-            nodesToExpand.add(node.id);
-          }
-        }
-        
-        return acc;
-      }, []);
-    };
-    
-    const result = filter(projects);
-    
-    // Expandir nodos después del filtrado
-    if (nodesToExpand.size > 0) {
-      setExpandedNodes(prev => {
-        const newSet = new Set(prev);
-        nodesToExpand.forEach(id => newSet.add(id));
-        return newSet;
-      });
-    }
-    
-    return result;
-  }, [projects, searchTerm]);
-
-  /**
    * Toggle expansión de un nodo
    */
   const toggleNode = (nodeId: string) => {
@@ -127,7 +102,7 @@ export const useProjectTreeState = (selectedTaskId: string | null) => {
     expandedNodes,
     searchTerm,
     selectedNode,
-    filteredProjects: filterNodes,
+    filteredProjects,
     
     // Acciones
     setSearchTerm,
