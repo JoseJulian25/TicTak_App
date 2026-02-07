@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AppInitializer } from "@/components/AppInitializer";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next"
 
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({children,}: Readonly<{children: React.ReactN
       <body>
         <AppInitializer>
           {children}
+          <Analytics />
         </AppInitializer>
         <Toaster position="top-right" richColors />
       </body>
