@@ -9,6 +9,7 @@ import {
   CheckSquare,
   Pencil,
   Trash2,
+  Move,
 } from "lucide-react";
 import { formatDuration } from "@/lib/time-utils";
 import { TreeNode } from "@/types";
@@ -30,6 +31,7 @@ interface ProjectNodeItemProps {
   onAddChild: (type: "project" | "task", parentId: string) => void;
   onEdit: (node: TreeNode, type: "client" | "project" | "task", parentId: string) => void;
   onDelete: (node: TreeNode, type: "client" | "project" | "task") => void;
+  onMove?: (node: TreeNode, type: "project" | "task", currentParentId: string) => void;
   onToggleComplete?: (taskId: string) => void;
 }
 
@@ -84,6 +86,7 @@ export function ProjectNodeItem({
   onAddChild,
   onEdit,
   onDelete,
+  onMove,
   onToggleComplete,
 }: ProjectNodeItemProps) {
   const hasChildren = node.children && node.children.length > 0;
@@ -177,7 +180,7 @@ export function ProjectNodeItem({
 
             {/* Progress for projects - compacto en móvil */}
             {node.type === "project" && node.totalTasks && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 hidden md:block">
                 <div className="w-12 sm:w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-green-500 rounded-full"
@@ -239,6 +242,17 @@ export function ProjectNodeItem({
                 <Pencil className="h-4 w-4 mr-2" />
                 Editar
               </DropdownMenuItem>
+              {node.type !== "client" && onMove && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMove(node, node.type as "project" | "task", parentId);
+                  }}
+                >
+                  <Move className="h-4 w-4 mr-2" />
+                  Mover
+                </DropdownMenuItem>
+              )}
               {node.type === "task" && onToggleComplete && (
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -291,6 +305,7 @@ export function ProjectNodeItem({
               onAddChild={onAddChild}
               onEdit={onEdit}
               onDelete={onDelete}
+              onMove={onMove}
               onToggleComplete={onToggleComplete}
             />
           ))}

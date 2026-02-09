@@ -6,10 +6,13 @@ import { useProjectTreeForProjects } from "@/hooks/useProjectTreeForProjects";
 import { useProjectsActions } from "@/hooks/useProjectsActions";
 import { useProjectSearch } from "@/hooks/useProjectSearch";
 import { useProjectDialogs } from "@/hooks/useProjectDialogs";
+import { useProjectMove } from "@/hooks/useProjectMove";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { formatDuration } from "@/lib/time-utils";
 import { SkeletonProjects } from "@/components/skeletons/SkeletonProjects";
 import { ProjectNodeItem } from "@/components/ProjectNodeItem";
+import { MoveItemDialog } from "@/components/MoveItemDialog";
+import { TreeNode } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -70,6 +73,15 @@ export function ProjectsView() {
     handleDeleteTask,
   } = useProjectsActions();
   
+  const {
+    showMoveDialog,
+    moveItemData,
+    moveDestinations,
+    openMoveDialog,
+    closeMoveDialog,
+    handleConfirmMove,
+  } = useProjectMove();
+  
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
   const toggleNode = (nodeId: string) => {
@@ -101,6 +113,17 @@ export function ProjectsView() {
     if (task) {
       updateTask(taskId, { isCompleted: !task.isCompleted });
     }
+  };
+
+  const handleMoveWithExpand = async (destinationId: string) => {
+    await handleConfirmMove(destinationId, (destId) => {
+      // Expandir el nodo de destino después de mover
+      setExpandedNodes((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(destId);
+        return newSet;
+      });
+    });
   };
 
   // Auto-expandir nodos que contienen resultados de búsqueda
@@ -287,6 +310,7 @@ export function ProjectsView() {
               onAddChild={openAddDialog}
               onEdit={openEditDialog}
               onDelete={openDeleteDialog}
+              onMove={openMoveDialog}
               onToggleComplete={handleToggleComplete}
             />
           ))
@@ -407,6 +431,19 @@ export function ProjectsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Move Item Dialog */}
+      {moveItemData && (
+        <MoveItemDialog
+          open={showMoveDialog}
+          onOpenChange={(open) => !open && closeMoveDialog()}
+          destinations={moveDestinations}
+          currentParentId={moveItemData.currentParentId}
+          itemName={moveItemData.node.name}
+          itemType={moveItemData.type}
+          onMove={handleMoveWithExpand}
+        />
+      )}
     </div>
   );
 }
