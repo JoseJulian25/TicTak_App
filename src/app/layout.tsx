@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 
 
 export const metadata: Metadata = {
-  title: "TicTak - Time Tracking App",
+  title: "TicTak - Personal Time Tracking App",
   description: "Aplicación de tracking de tiempo simple y sin fricción",
 };
 

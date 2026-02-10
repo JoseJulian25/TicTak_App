@@ -110,7 +110,7 @@ export function TimerView() {
             onClick={handleSave}
             size="lg"
             disabled={elapsedSeconds === 0}
-            className={`flex-1 py-3 ${
+            className={`flex-1 py-3 cursor-pointer ${
               elapsedSeconds === 0 ? "opacity-50 cursor-not-allowed" : ""
             } bg-[#0466c8] hover:bg-[#023e7d]`}
           >
@@ -122,7 +122,7 @@ export function TimerView() {
             size="lg"
             disabled={elapsedSeconds === 0 && !activeSession}
             variant="outline"
-            className="sm:w-auto py-4"
+            className="sm:w-auto py-4 cursor-pointer"
           >
             <RotateCcw className="h-5 w-5" />
           </Button>

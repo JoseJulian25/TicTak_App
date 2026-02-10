@@ -104,8 +104,9 @@ export function ProjectNodeItem({
           group flex items-center gap-2 py-3 px-2 sm:py-2.5 sm:px-3
           hover:bg-gray-100 dark:hover:bg-gray-800 
           border-b border-gray-100 dark:border-gray-800
-          transition-colors cursor-pointer
+          transition-colors
           ${level === 0 ? 'bg-gray-50/50 dark:bg-gray-900/50' : ''}
+          ${node.type=="task" ? 'cursor-pointer' : 'cursor-default'}
         `}
         style={{ paddingLeft: `${paddingLeft}px` }}
       >
