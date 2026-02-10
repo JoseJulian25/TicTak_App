@@ -253,7 +253,7 @@ export function ProjectsView() {
           <Button
             onClick={() => openAddDialog("client")}
             size="sm"
-            className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            className="gap-2 bg-gradient-to-r from-[#38a3a5] to-[#57cc99] hover:from-[#22577a] hover:to-[#38a3a5]"
           >
             <Plus className="h-4 w-4" />
             Nuevo Cliente

@@ -83,10 +83,10 @@ export function TimerView() {
             <Button
               onClick={handleStartPause}
               size="lg"
-            className={`flex-1 py-3 ${
+            className={`flex-1 py-3 cursor-pointer ${
               isRunning
                 ? "bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
-                : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                : " bg-[#57cc99] hover:bg-[#80ed99] hover:bg-[#38a3a5]"
             }`}
           >
             {isRunning ? (
@@ -112,7 +112,7 @@ export function TimerView() {
             disabled={elapsedSeconds === 0}
             className={`flex-1 py-3 ${
               elapsedSeconds === 0 ? "opacity-50 cursor-not-allowed" : ""
-            } bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700`}
+            } bg-[#0466c8] hover:bg-[#023e7d]`}
           >
             <Save className="h-5 w-5 mr-2" />
             Guardar
