@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock, BarChart3, Folder, Settings } from 'lucide-react'
+import { Clock, BarChart3, Folder, Settings, Image, ImageDownIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '../ui/button'
@@ -22,18 +22,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="w-6 h-6 text-white"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-          </div>
+          <img src="/favicon-transparent.svg" alt="TicTak Logo" className="w-10 h-10" />
           <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             TicTak
           </h1>
@@ -52,7 +41,7 @@ export function Sidebar() {
                   variant="ghost"
                   className={`w-full justify-start gap-3 ${
                      isActive(item.id)
-                      ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900'
+                      ? 'bg-[#38a3a5]/10 dark:bg-[#38a3a5]/20 text-[#38a3a5] dark:text-[#80ed99] hover:bg-[#38a3a5]/20 dark:hover:bg-[#38a3a5]/30'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
@@ -68,7 +57,7 @@ export function Sidebar() {
       {/* User Profile */}
       <div className="mt-auto border-t border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#38a3a5] to-[#57cc99] flex items-center justify-center">
             <span className="text-white font-medium">U</span>
           </div>
 
@@ -85,9 +74,9 @@ export function Sidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className={`shrink-0 ${
+              className={`shrink-0 cursor-pointer ${
                 isActive('settings')
-                  ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400'
+                  ? 'bg-[#38a3a5]/10 dark:bg-[#38a3a5]/20 text-[#38a3a5] dark:text-[#80ed99]'
                   : 'text-gray-500 dark:text-gray-400'
               }`}
             >

@@ -41,18 +41,7 @@ export function MobileNav() {
         <div className="flex items-center justify-between p-4">
           {/* Logo and Name - Left */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="w-5 h-5 text-white"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-            </div>
+            <img src="/favicon-transparent.svg" alt="TicTak Logo" className="w-8 h-8" />
             <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               TicTak
             </h1>
@@ -60,7 +49,7 @@ export function MobileNav() {
 
           {/* User + Settings - Right */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#38a3a5] to-[#57cc99] flex items-center justify-center">
               <span className="text-white text-sm font-medium">U</span>
             </div>
             <Link href='/dashboard/settings'>
@@ -69,7 +58,7 @@ export function MobileNav() {
                 size="icon"
                 className={`h-8 w-8 ${
                   isActive('settings')
-                    ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
+                    ? "bg-[#38a3a5]/10 dark:bg-[#38a3a5]/20 text-[#38a3a5] dark:text-[#80ed99]"
                     : "text-gray-600 dark:text-gray-400"
                 }`}
               >
@@ -95,7 +84,7 @@ export function MobileNav() {
                   size="icon"
                   className={`h-14 w-14 rounded-xl flex flex-col items-center justify-center gap-1 ${
                     isActive(item.id)
-                      ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
+                      ? "bg-[#38a3a5]/10 dark:bg-[#38a3a5]/20 text-[#38a3a5] dark:text-[#80ed99]"
                       : "text-gray-600 dark:text-gray-400"
                   }`}
                 >

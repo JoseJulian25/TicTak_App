@@ -11,9 +11,6 @@
 		<stop offset="100%" style="stop-color:#80ed99;stop-opacity:1" />
 	</linearGradient>
 </defs>
-<!-- Fondo claro -->
-<rect x="0" y="0" width="485.563" height="485.562" rx="80" ry="80" fill="#c7fae9"/>
-<!-- Contenido principal -->
 <g fill="url(#coolWatersGradient)">
 	<g id="Layer_2_18_">
 		<g>
@@ -68,6 +65,4 @@
 		</g>
 	</g>
 </g>
-<!-- Indicador de estado activo -->
-<circle cx="400" cy="85" r="55" fill="#dc2626"/>
 </svg>
