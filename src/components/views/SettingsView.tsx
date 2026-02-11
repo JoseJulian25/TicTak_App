@@ -3,8 +3,22 @@
 import { Bell, Moon, Globe, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function SettingsView() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Evitar hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300">
       <div className="mb-8">
@@ -33,7 +47,10 @@ export function SettingsView() {
                   Activa el tema oscuro
                 </div>
               </div>
-              <Switch />
+              <Switch 
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              />
             </div>
           </div>
         </div>

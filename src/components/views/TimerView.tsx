@@ -111,7 +111,7 @@ export function TimerView() {
             size="lg"
             disabled={elapsedSeconds === 0}
             className={`flex-1 py-3 cursor-pointer ${
-              elapsedSeconds === 0 ? "opacity-50 cursor-not-allowed" : ""
+              elapsedSeconds === 0 ? "opacity-50 cursor-not-allowed" : "text-white"
             } bg-[#0466c8] hover:bg-[#023e7d]`}
           >
             <Save className="h-5 w-5 mr-2" />
