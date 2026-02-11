@@ -143,7 +143,7 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
     <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <div
-          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[70px] py-4 px-6 rounded-md transition-all shadow-sm hover:shadow-md cursor-pointer"
+          className="w-full flex items-center justify-between bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-300 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[70px] py-4 px-6 rounded-md transition-all shadow-sm hover:shadow-md cursor-pointer"
         >
           <div className="flex items-center gap-3">
             {selectedNode ? (
