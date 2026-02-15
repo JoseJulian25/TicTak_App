@@ -27,11 +27,13 @@ export function useTaskActions(taskId: string): UseTaskActionsResult {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
 
-  // Funciones del store
+  // Funciones del store (estables)
   const deleteTask = useTaskStore((state) => state.deleteTask);
   const moveTaskToProject = useTaskStore((state) => state.moveTaskToProject);
   const updateTask = useTaskStore((state) => state.updateTask);
-  const getTaskById = useTaskStore((state) => state.getTaskById);
+  
+  // Array de tasks para buscar por ID (referencia estable)
+  const tasks = useTaskStore((state) => state.tasks);
 
   /**
    * Elimina la tarea y sus sesiones
@@ -42,7 +44,7 @@ export function useTaskActions(taskId: string): UseTaskActionsResult {
       setIsDeleting(true);
 
       // Obtener nombre de la tarea para el toast
-      const task = getTaskById(taskId);
+      const task = tasks.find((t) => t.id === taskId);
       const taskName = task?.name || "Tarea";
 
       // Eliminar tarea (también elimina sus sesiones en el store)
@@ -71,7 +73,7 @@ export function useTaskActions(taskId: string): UseTaskActionsResult {
     try {
       setIsMoving(true);
 
-      const task = getTaskById(taskId);
+      const task = tasks.find((t) => t.id === taskId);
       const taskName = task?.name || "Tarea";
 
       await moveTaskToProject(taskId, newProjectId);
@@ -96,7 +98,7 @@ export function useTaskActions(taskId: string): UseTaskActionsResult {
    */
   const handleToggleComplete = () => {
     try {
-      const task = getTaskById(taskId);
+      const task = tasks.find((t) => t.id === taskId);
       
       if (!task) {
         toast.error("Tarea no encontrada");

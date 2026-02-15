@@ -10,6 +10,7 @@ import { useTaskDetail } from "@/hooks/useTaskDetail";
 import { useTaskActions } from "@/hooks/useTaskActions";
 import { useClientStore } from "@/stores/useClientStore";
 import { useProjectStore } from "@/stores/useProjectStore";
+import type { Client } from "@/types/entities";
 
 interface MoveDestination {
   id: string;
@@ -29,23 +30,23 @@ interface TaskDetailViewProps {
 export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewProps) {
   const [showMoveDialog, setShowMoveDialog] = useState(false);
 
-  // Obtener datos de la tarea con el hook
   const { data, error, updateTask } = useTaskDetail(taskId);
   
-  // Hook para acciones (mover tarea)
   const { handleMove } = useTaskActions(taskId);
 
-  // Obtener clientes y proyectos para el diálogo de mover
-  const clients = useClientStore((state) => state.getActiveClients());
-  const getProjectsByClient = useProjectStore((state) => state.getProjectsByClient);
+  const allClients = useClientStore((state) => state.clients);
+  const allProjects = useProjectStore((state) => state.projects);
 
   // Preparar destinos para MoveItemDialog
   const moveDestinations: MoveDestination[] = useMemo(() => {
     const destinations: MoveDestination[] = [];
+    const activeClients = allClients.filter((c: Client) => !c.isArchived);
     
-    clients.forEach((client) => {
-      const projects = getProjectsByClient(client.id, false);
-      projects.forEach((project) => {
+    activeClients.forEach((client) => {
+      const clientProjects = allProjects.filter(
+        (p) => p.clientId === client.id && !p.isArchived
+      );
+      clientProjects.forEach((project) => {
         destinations.push({
           id: project.id,
           name: project.name,
@@ -57,7 +58,7 @@ export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewP
     });
 
     return destinations;
-  }, [clients, getProjectsByClient]);
+  }, [allClients, allProjects]);
 
   // Manejar el movimiento de la tarea
   const handleMoveTask = async (destinationProjectId: string) => {

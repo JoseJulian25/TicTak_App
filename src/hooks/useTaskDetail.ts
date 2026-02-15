@@ -6,9 +6,7 @@ import { useSessionStore } from "@/stores/useSessionStore";
 import { getTaskDetailStats, type TaskDetailStats } from "@/lib/task-stats";
 import type { Task, Project, Client, Session } from "@/types/entities";
 
-/**
- * Datos completos de una tarea con sus relaciones
- */
+
 export interface TaskDetailData {
   task: Task;
   project: Project;
@@ -17,19 +15,12 @@ export interface TaskDetailData {
   stats: TaskDetailStats;
 }
 
-/**
- * Resultado del hook useTaskDetail
- */
+
 export interface UseTaskDetailResult {
-  /** Datos completos de la tarea (null si no existe) */
   data: TaskDetailData | null;
-  /** Error si la tarea no existe o falta alguna relación */
   error: string | null;
-  /** Actualiza la tarea */
   updateTask: (updates: Partial<Task>) => void;
-  /** Elimina la tarea y sus sesiones */
   deleteTask: () => void;
-  /** Alterna el estado de completado */
   toggleComplete: () => void;
 }
 
@@ -41,26 +32,23 @@ export interface UseTaskDetailResult {
  * 
  */
 export function useTaskDetail(taskId: string): UseTaskDetailResult {
-  // Obtener funciones de acción
+
   const updateTaskStore = useTaskStore((state) => state.updateTask);
   const deleteTaskStore = useTaskStore((state) => state.deleteTask);
 
-  // Obtener datos de las stores directamente con selectores
-  const task = useTaskStore((state) => state.getTaskById(taskId));
-  const project = useProjectStore((state) => 
-    task ? state.getProjectById(task.projectId) : undefined
-  );
-  const client = useClientStore((state) => 
-    project ? state.getClientById(project.clientId) : undefined
-  );
-  const sessions = useSessionStore((state) => state.getSessionsByTask(taskId));
+  // Obtener arrays completos
+  const tasks = useTaskStore((state) => state.tasks);
+  const projects = useProjectStore((state) => state.projects);
+  const clients = useClientStore((state) => state.clients);
+  const sessions = useSessionStore((state) => state.sessions);
 
   // Calcular datos y estadísticas
   const result = useMemo<{
     data: TaskDetailData | null;
     error: string | null;
   }>(() => {
-    // Validaciones
+    const task = tasks.find((t) => t.id === taskId);
+    
     if (!task) {
       return {
         data: null,
@@ -68,6 +56,7 @@ export function useTaskDetail(taskId: string): UseTaskDetailResult {
       };
     }
 
+    const project = projects.find((p) => p.id === task.projectId);
     if (!project) {
       return {
         data: null,
@@ -75,6 +64,7 @@ export function useTaskDetail(taskId: string): UseTaskDetailResult {
       };
     }
 
+    const client = clients.find((c) => c.id === project.clientId);
     if (!client) {
       return {
         data: null,
@@ -82,21 +72,20 @@ export function useTaskDetail(taskId: string): UseTaskDetailResult {
       };
     }
 
-    // Calcular estadísticas
-    const stats = getTaskDetailStats(taskId, sessions);
+    const taskSessions = sessions.filter((s) => s.taskId === taskId);
+    const stats = getTaskDetailStats(taskId, taskSessions);
 
-    // Retornar datos completos
     return {
       data: {
         task,
         project,
         client,
-        sessions,
+        sessions: taskSessions,
         stats,
       },
       error: null,
     };
-  }, [task, project, client, sessions, taskId]);
+  }, [tasks, projects, clients, sessions, taskId]);
 
   // Funciones de acción
   const updateTask = (updates: Partial<Task>) => {
@@ -108,8 +97,8 @@ export function useTaskDetail(taskId: string): UseTaskDetailResult {
   };
 
   const toggleComplete = () => {
-    if (task) {
-      updateTaskStore(taskId, { isCompleted: !task.isCompleted });
+    if (result.data?.task) {
+      updateTaskStore(taskId, { isCompleted: !result.data.task.isCompleted });
     }
   };
 

@@ -1,26 +1,26 @@
 "use client";
 
+import { use } from "react";
 import { TaskDetailView } from "@/components/views/TaskDetailView";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { useTaskStore } from "@/stores/useTaskStore";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     taskId: string;
-  };
+  }>;
 }
 
 export default function TaskDetailPage({ params }: PageProps) {
   const router = useRouter();
   
-  // Obtener función para verificar existencia de tarea
-  const getTaskById = useTaskStore((state) => state.getTaskById);
+  const { taskId } = use(params);
   
-  // Verificar si la tarea existe
-  const task = getTaskById(params.taskId);
+  const tasks = useTaskStore((state) => state.tasks);
+  
+  const task = tasks.find((t) => t.id === taskId);
 
-  // Si la tarea no existe, mostrar página not-found
   if (!task) {
     notFound();
   }
@@ -36,7 +36,7 @@ export default function TaskDetailPage({ params }: PageProps) {
 
   return (
     <TaskDetailView
-      taskId={params.taskId}
+      taskId={taskId}
       onBack={handleBack}
       onStartTimer={handleStartTimer}
     />
