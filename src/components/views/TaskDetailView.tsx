@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import TaskBreadcrumb from "@/components/TaskBreadcrumb";
-import TaskHeader from "@/components/TaskHeader";
-import TaskMetrics from "@/components/TaskMetrics";
+import { TaskBreadcrumb } from "@/components/TaskBreadcrumb";
+import { TaskHeader } from "@/components/TaskHeader";
+import { TaskMetrics } from "@/components/TaskMetrics";
 import TaskStatsSummary from "@/components/TaskStatsSummary";
 import TaskSessionHistory from "@/components/TaskSessionHistory";
 import TaskActions from "@/components/TaskActions";
@@ -28,7 +27,6 @@ interface TaskDetailViewProps {
 }
 
 export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewProps) {
-  const router = useRouter();
   const [showMoveDialog, setShowMoveDialog] = useState(false);
 
   // Obtener datos de la tarea con el hook
@@ -113,7 +111,6 @@ export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewP
         <TaskHeader
           task={task}
           onUpdate={updateTask}
-          onToggleComplete={updateTask}
           onStartTimer={handleStartTimer}
         />
 
