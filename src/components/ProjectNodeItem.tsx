@@ -11,6 +11,7 @@ import {
   Trash2,
   Move,
 } from "lucide-react";
+import Link from "next/link";
 import { formatDuration } from "@/lib/time-utils";
 import { TreeNode } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -106,7 +107,6 @@ export function ProjectNodeItem({
           border-b border-gray-100 dark:border-gray-800
           transition-colors
           ${level === 0 ? 'bg-gray-50/50 dark:bg-gray-900/50' : ''}
-          ${node.type=="task" ? 'cursor-pointer' : 'cursor-default'}
         `}
         style={{ paddingLeft: `${paddingLeft}px` }}
       >
@@ -153,14 +153,27 @@ export function ProjectNodeItem({
         {/* Name & Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className={`
-              truncate
-              ${level === 0 ? 'font-semibold text-gray-900 dark:text-gray-100' : ''}
-              ${level === 1 ? 'font-medium text-gray-800 dark:text-gray-200' : ''}
-              ${level === 2 ? 'text-gray-700 dark:text-gray-300' : ''}
-            `}>
-              {node.name}
-            </span>
+            {node.type === "task" ? (
+              <Link
+                href={`/dashboard/tasks/${node.id}`}
+                className={`
+                  truncate hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors
+                  ${level === 2 ? 'text-gray-700 dark:text-gray-300' : ''}
+                `}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {node.name}
+              </Link>
+            ) : (
+              <span className={`
+                truncate
+                ${level === 0 ? 'font-semibold text-gray-900 dark:text-gray-100' : ''}
+                ${level === 1 ? 'font-medium text-gray-800 dark:text-gray-200' : ''}
+                ${level === 2 ? 'text-gray-700 dark:text-gray-300' : ''}
+              `}>
+                {node.name}
+              </span>
+            )}
 
             {/* Metadata inline - visible en móvil */}
             <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-500 shrink-0">

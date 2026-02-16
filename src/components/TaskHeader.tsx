@@ -97,7 +97,7 @@ export function TaskHeader({ task, onUpdate, onStartTimer }: TaskHeaderProps) {
               setTitle(task.name);
               setIsEditingTitle(true);
             }}
-            className="text-3xl font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-3xl font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors"
           >
             {task.name}
           </h1>

@@ -1,4 +1,5 @@
 import { useMemo, useState, memo } from "react";
+import Link from "next/link";
 import { Clock, Trash2, Loader2 } from "lucide-react";
 import { useSessionStore } from "@/stores/useSessionStore";
 import { useEnrichedSessions } from "@/hooks/useEnrichedSessions";
@@ -105,15 +106,18 @@ export const SessionHistory = memo(function SessionHistory() {
                 <div 
                   className="w-1 h-16 rounded-full" 
                   style={{ 
-                    background: "linear-gradient(to bottom, #3b82f6, #8b5cf6)"
+                    background: "linear-gradient(to bottom, #38a3a5, #57cc99)"
                   }}
                 />
                 
                 {/* Project info - este div DEBE poder encogerse */}
                 <div className="min-w-0">
-                  <div className="font-medium text-gray-900 dark:text-gray-100 mb-1 truncate">
+                  <Link 
+                    href={`/dashboard/tasks/${session.taskId}`}
+                    className="font-medium text-gray-900 dark:text-gray-100 mb-1 truncate block hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer"
+                  >
                     {session.taskName}
-                  </div>
+                  </Link>
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-1 truncate">
                     {session.projectPath}
                   </div>
