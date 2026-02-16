@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { TaskBreadcrumb } from "@/components/TaskBreadcrumb";
 import { TaskHeader } from "@/components/TaskHeader";
 import { TaskMetrics } from "@/components/TaskMetrics";
@@ -10,6 +11,18 @@ import { useTaskDetail } from "@/hooks/useTaskDetail";
 import { useTaskActions } from "@/hooks/useTaskActions";
 import { useClientStore } from "@/stores/useClientStore";
 import { useProjectStore } from "@/stores/useProjectStore";
+import { useTimerStore } from "@/stores/useTimerStore";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { Client } from "@/types/entities";
 
 interface MoveDestination {
@@ -24,15 +37,21 @@ interface MoveDestination {
 interface TaskDetailViewProps {
   taskId: string;
   onBack: () => void;
-  onStartTimer?: () => void;
 }
 
-export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewProps) {
+export function TaskDetailView({ taskId, onBack }: TaskDetailViewProps) {
+  const router = useRouter();
   const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [showTimerDialog, setShowTimerDialog] = useState(false);
 
   const { data, error, updateTask } = useTaskDetail(taskId);
   
   const { handleMove } = useTaskActions(taskId);
+  
+  const isRunning = useTimerStore((state) => state.isRunning);
+  const activeSession = useTimerStore((state) => state.activeSession);
+  const startTimer = useTimerStore((state) => state.startTimer);
+  const resetTimer = useTimerStore((state) => state.resetTimer);
 
   const allClients = useClientStore((state) => state.clients);
   const allProjects = useProjectStore((state) => state.projects);
@@ -68,9 +87,35 @@ export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewP
 
   // Manejar inicio de timer
   const handleStartTimer = () => {
-    if (onStartTimer) {
-      onStartTimer();
+    if (!data?.task) return;
+
+    if (data.task.isCompleted) {
+      toast.error("No se puede iniciar timer en una tarea completada");
+      return;
     }
+
+    if (isRunning && activeSession?.taskId === taskId) {
+      toast.info("El timer ya está corriendo con esta tarea");
+      router.push("/dashboard/timer");
+      return;
+    }
+
+    if (isRunning && activeSession?.taskId !== taskId) {
+      setShowTimerDialog(true);
+      return;
+    }
+
+    startTimer(taskId);
+    toast.success("Timer iniciado");
+    router.push("/dashboard/timer");
+  };
+
+  const handleConfirmChangeTimer = () => {
+    resetTimer();
+    startTimer(taskId);
+    setShowTimerDialog(false);
+    toast.success("Timer cambiado a esta tarea");
+    router.push("/dashboard/timer");
   };
 
   // Estado de carga o error
@@ -102,6 +147,9 @@ export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewP
 
   const { task, project, client, sessions, stats } = data;
 
+  // Verificar si esta tarea está siendo temporizada actualmente
+  const isTimerActive = isRunning && activeSession?.taskId === taskId;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-6 md:px-8 py-8">
@@ -113,6 +161,7 @@ export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewP
           task={task}
           onUpdate={updateTask}
           onStartTimer={handleStartTimer}
+          isTimerActive={isTimerActive}
         />
 
         {/* Metrics Grid */}
@@ -142,6 +191,24 @@ export function TaskDetailView({ taskId, onBack, onStartTimer }: TaskDetailViewP
           itemType="task"
           onMove={handleMoveTask}
         />
+
+        {/* Timer Change Confirmation Dialog */}
+        <AlertDialog open={showTimerDialog} onOpenChange={setShowTimerDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Cambiar tarea del timer?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Ya hay un timer activo con otra tarea. ¿Deseas detenerlo y comenzar con esta tarea?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmChangeTimer}>
+                Cambiar tarea
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

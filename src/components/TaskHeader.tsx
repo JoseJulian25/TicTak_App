@@ -11,6 +11,7 @@ interface TaskHeaderProps {
   task: Task;
   onUpdate: (updates: Partial<Task>) => void;
   onStartTimer: () => void;
+  isTimerActive?: boolean;
 }
 
 /**
@@ -19,7 +20,7 @@ interface TaskHeaderProps {
  * Permite editar el nombre y descripción haciendo click,
  * toggle de completado con switch, y botón para iniciar timer.
  */
-export function TaskHeader({ task, onUpdate, onStartTimer }: TaskHeaderProps) {
+export function TaskHeader({ task, onUpdate, onStartTimer, isTimerActive = false }: TaskHeaderProps) {
   // Estados de edición
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -145,11 +146,15 @@ export function TaskHeader({ task, onUpdate, onStartTimer }: TaskHeaderProps) {
       {/* Botón de iniciar timer */}
       <Button
         onClick={onStartTimer}
-        disabled={task.isCompleted}
-        className="bg-green-500 hover:bg-green-600 text-white h-10 px-6 gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={task.isCompleted || isTimerActive}
+        className={
+          isTimerActive
+            ? "bg-blue-500 text-white h-10 px-6 gap-2 shadow-md cursor-default"
+            : "bg-green-500 hover:bg-green-600 text-white h-10 px-6 gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        }
       >
         <Play className="h-5 w-5" />
-        Iniciar Timer
+        {isTimerActive ? "En curso" : "Iniciar Timer"}
       </Button>
     </div>
   );

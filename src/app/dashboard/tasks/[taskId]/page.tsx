@@ -18,7 +18,6 @@ export default function TaskDetailPage({ params }: PageProps) {
   const { taskId } = use(params);
   
   const tasks = useTaskStore((state) => state.tasks);
-  
   const task = tasks.find((t) => t.id === taskId);
 
   if (!task) {
@@ -29,16 +28,10 @@ export default function TaskDetailPage({ params }: PageProps) {
     router.push("/dashboard/projects");
   };
 
-  const handleStartTimer = () => {
-    // TODO: Implementar lógica de iniciar timer con esta tarea
-    router.push("/dashboard/timer");
-  };
-
   return (
     <TaskDetailView
       taskId={taskId}
       onBack={handleBack}
-      onStartTimer={handleStartTimer}
     />
   );
 }
