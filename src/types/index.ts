@@ -22,3 +22,6 @@ export * from './enriched';
 
 // Inputs para crear/actualizar
 export * from './inputs';
+
+// Módulo de estadísticas
+export * from './stats';
