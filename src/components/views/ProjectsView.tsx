@@ -108,33 +108,37 @@ export function ProjectsView() {
       </div>
 
       {/* Projects Accordion List */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="space-y-2">
         {/* Projects Tree */}
         {filteredProjects.length > 0 ? (
           filteredProjects.map((node) => (
-            <ProjectNodeItem
+            <div
               key={node.id}
-              node={node}
-              level={0}
-              parentId=""
-              expandedNodes={expandedNodes}
-              onToggle={toggleNode}
-              onAddChild={dialogsState.openAddDialog}
-              onEdit={dialogsState.openEditDialog}
-              onDelete={dialogsState.openDeleteDialog}
-              onMove={moveState.openMoveDialog}
-              onToggleComplete={handleToggleComplete}
-            />
+              className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm"
+            >
+              <ProjectNodeItem
+                node={node}
+                level={0}
+                parentId=""
+                expandedNodes={expandedNodes}
+                onToggle={toggleNode}
+                onAddChild={dialogsState.openAddDialog}
+                onEdit={dialogsState.openEditDialog}
+                onDelete={dialogsState.openDeleteDialog}
+                onMove={moveState.openMoveDialog}
+                onToggleComplete={handleToggleComplete}
+              />
+            </div>
           ))
         ) : searchQuery ? (
-          <div className="text-center py-12">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 text-center py-12">
             <Search className="h-10 w-10 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">
               No se encontraron resultados para &quot;{searchQuery}&quot;
             </p>
           </div>
         ) : (
-          <div className="text-center py-12">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 text-center py-12">
             <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 mb-1">No hay clientes creados</p>
             <p className="text-sm text-gray-400">Crea tu primer cliente para empezar</p>
@@ -171,10 +175,10 @@ export function ProjectsView() {
                 }}
                 placeholder={
                   dialogsState.dialogType === "client"
-                    ? "Ej: BanReservas"
+                    ? "Ej: Empresa, Freelance, Personal..."
                     : dialogsState.dialogType === "project"
-                    ? "Ej: Sistema de Pagos"
-                    : "Ej: Implementar API de transacciones"
+                    ? "Ej: Diseño web, App móvil, Campaña..."
+                    : "Ej: Redactar propuesta, Revisar diseño..."
                 }
               />
               {actionsState.errorMessage && (

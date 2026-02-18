@@ -110,7 +110,10 @@ export function ProjectNodeItem({
           hover:bg-gray-50 dark:hover:bg-gray-800/60
           border-b border-gray-100 dark:border-gray-800
           transition-colors
-          ${level === 0 ? 'bg-gray-50/70 dark:bg-gray-900/60' : 'bg-white dark:bg-gray-900'}
+          ${level === 0
+            ? 'bg-gray-50 dark:bg-gray-900/60'
+            : 'bg-white dark:bg-gray-900'
+          }
         `}
         style={{ paddingLeft: `${paddingLeft}px` }}
       >
