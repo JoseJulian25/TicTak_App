@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,8 +13,8 @@ import {
   Zap,
 } from "lucide-react";
 
-import type { Period, DistribTab, HeatmapDay } from "@/types";
-import { calcHeatmapData, organizeHeatmapByWeeks } from "@/lib/stats-calculator";
+import type { Period, DistribTab } from "@/types";
+import { useStatsView } from "@/hooks/useStatsView";
 
 
 const periodMetrics: Record<Period, { label: string; value: string; sub?: string }[]> = {
@@ -228,7 +227,14 @@ const recentSessionsByPeriod: Record<Period, {
   ],
 };
 
-// ─── Heatmap helpers ──────────────────────────────────────────────────────────
+// ─── UI helpers ──────────────────────────────────────────────────────────────
+
+const INSIGHT_ICONS = [
+  <Zap          key="zap"   className="h-4 w-4 text-yellow-500" />,
+  <Flame        key="flame" className="h-4 w-4 text-orange-500" />,
+  <TrendingUp   key="trend" className="h-4 w-4 text-green-500"  />,
+  <CalendarDays key="cal"   className="h-4 w-4 text-blue-500"   />,
+];
 
 const heatmapColors = [
   "bg-gray-100 dark:bg-gray-800",
@@ -256,24 +262,22 @@ const DISTRIB_TABS: { key: DistribTab; label: string; icon: React.ReactNode }[] 
 ];
 
 export function StatsView() {
-  const currentYear = new Date().getFullYear();
-  const [period, setPeriod] = useState<Period>("month");
-  const [distribTab, setDistribTab] = useState<DistribTab>("projects");
-  const [year, setYear] = useState(currentYear);
-  const [customFrom, setCustomFrom] = useState("2026-02-01");
-  const [customTo, setCustomTo] = useState("2026-02-14");
-  const [heatmapData] = useState<HeatmapDay[]>(() => calcHeatmapData([], currentYear));
-
-  const weeks = organizeHeatmapByWeeks(heatmapData);
-  const totalYearHours = heatmapData.reduce((s, d) => s + d.hours, 0);
-
-  const metrics = periodMetrics[period];
-  const insights = periodInsights[period];
-  const distribItems = distribData[period][distribTab];
-  const sessions = recentSessionsByPeriod[period];
-
-  const maxDistribHours = Math.max(...distribItems.map((i) => i.hours));
-  const totalDistribHours = distribItems.reduce((s, i) => s + i.hours, 0);
+  const {
+    period,      setPeriod,
+    distribTab,  setDistribTab,
+    year,        setYear,
+    customFrom,  setCustomFrom,
+    customTo,    setCustomTo,
+    currentYear,
+    metrics,
+    insights,
+    distribItems,
+    totalDistribHours,
+    maxDistribHours,
+    recentSessions,
+    heatmapWeeks,
+    totalYearHours,
+  } = useStatsView();
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 animate-in fade-in duration-300 space-y-6">
@@ -337,9 +341,9 @@ export function StatsView() {
 
       {/* Section 2 — Insights */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {insights.map(({ icon, label, value, sub }) => (
+        {insights.map(({ label, value, sub }, i) => (
           <div key={label} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-4 flex items-start gap-3">
-            <div className="mt-0.5 shrink-0">{icon}</div>
+            <div className="mt-0.5 shrink-0">{INSIGHT_ICONS[i]}</div>
             <div className="min-w-0">
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5 truncate">{label}</p>
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{value}</p>
@@ -358,14 +362,14 @@ export function StatsView() {
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setYear((y) => y - 1)}
+              onClick={() => setYear(year - 1)}
               className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-10 text-center">{year}</span>
             <button
-              onClick={() => setYear((y) => y + 1)}
+              onClick={() => setYear(year + 1)}
               disabled={year >= currentYear}
               className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
@@ -386,7 +390,7 @@ export function StatsView() {
               )}
             </div>
             <div className="flex gap-1">
-              {weeks.map((week, wi) => (
+              {heatmapWeeks.map((week, wi) => (
                 <div key={wi} className="flex flex-col gap-1">
                   {wi % 4 === 0 && week[0]?.date ? (
                     <div className="h-3 text-[10px] text-gray-400 dark:text-gray-600 leading-3">
@@ -481,12 +485,12 @@ export function StatsView() {
             <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Actividad reciente</h2>
           </div>
 
-          {sessions.length === 0 ? (
+          {recentSessions.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-8">Sin actividad en este período</p>
           ) : (
             <div className="space-y-1">
-              {sessions.map((session, i) => {
-                const showDateDivider = i === 0 || sessions[i - 1].date !== session.date;
+              {recentSessions.map((session, i) => {
+                const showDateDivider = i === 0 || recentSessions[i - 1].date !== session.date;
                 return (
                   <div key={session.id}>
                     {showDateDivider && (
