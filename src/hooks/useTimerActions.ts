@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTimerStore } from "@/stores/useTimerStore";
 import { useTaskStore } from "@/stores/useTaskStore";
-import { useProjectStore } from "@/stores/useProjectStore";
 import { saveActiveSession } from "@/lib/session-manager";
 import { UNNAMED_TASK_ID, LOCAL_STORAGE_KEYS } from "@/lib/constants";
 import { Storage } from "@/lib/storage";
@@ -19,14 +18,11 @@ export function useTimerActions() {
   
   const addTask = useTaskStore((state) => state.addTask);
   
-  const generalProject = useProjectStore((state) => 
-    state.projects.find(p => p.name === "General" && !p.isArchived)
-  );
-  
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   // Calcular elapsedSeconds en tiempo real
   const elapsedSeconds = getElapsedSeconds();
@@ -106,19 +102,12 @@ export function useTimerActions() {
   };
 
   const handleSaveWithNewTask = async () => {
-    if (!newTaskName.trim()) return;
-    
+    if (!newTaskName.trim() || !selectedProjectId) return;
+
     try {
-      if (!generalProject) {
-        toast.error('Proyecto no encontrado', {
-          description: 'No se encontró el proyecto "General". Por favor crea uno en Ajustes.',
-        });
-        return;
-      }
-      
       const newTask = await addTask({
         name: newTaskName.trim(),
-        projectId: generalProject.id,
+        projectId: selectedProjectId,
       });
       
       if (activeSession) {
@@ -138,6 +127,7 @@ export function useTimerActions() {
         setShowSaveDialog(false);
         setNewTaskName('');
         setSelectedTaskId(null);
+        setSelectedProjectId(null);
       } else {
         toast.error('Error al guardar', {
           description: result.error,
@@ -154,6 +144,7 @@ export function useTimerActions() {
   const handleCancelSave = () => {
     setShowSaveDialog(false);
     setNewTaskName("");
+    setSelectedProjectId(null);
   };
 
   const handleReset = () => {
@@ -183,6 +174,8 @@ export function useTimerActions() {
     setShowResetDialog,
     newTaskName,
     setNewTaskName,
+    selectedProjectId,
+    setSelectedProjectId,
     elapsedSeconds,
     isRunning,
     isPaused,
