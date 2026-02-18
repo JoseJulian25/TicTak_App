@@ -38,13 +38,13 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
   } = useProjectTreeState(selectedTaskId);
 
   const getIcon = (node: TreeNode, isExpanded: boolean, hasChildren: boolean) => {
-    const iconClasses = "h-5 w-5";
+    const iconClasses = "h-4 w-4";
     
     if (node.type === "client") {
       return <Building2 className={`${iconClasses} text-blue-600 dark:text-blue-400`} />;
     }
     if (node.type === "project") {
-      return <FolderKanban className={`${iconClasses} text-purple-600 dark:text-purple-400`} />;
+      return <FolderKanban className={`${iconClasses} text-purple-500 dark:text-purple-400`} />;
     }
     return <CheckSquare className={`${iconClasses} text-green-600 dark:text-green-400`} />;
   };
@@ -56,7 +56,7 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
     const canSelect = node.type === "task";
 
     const getBgColor = () => {
-      if (isSelected) return "bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-l-4 border-blue-500";
+      if (isSelected) return "bg-green-50 dark:bg-green-950/40 border-l-2 border-green-500";
       return "hover:bg-gray-50 dark:hover:bg-gray-800";
     };
 
@@ -100,20 +100,12 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
             <div className="w-5" />
           )}
 
-          {/* Icon with background */}
-          <div className={`p-1.5 rounded-lg ${
-            node.type === "client" 
-              ? "bg-blue-100 dark:bg-blue-950" 
-              : node.type === "project"
-              ? "bg-purple-100 dark:bg-purple-950"
-              : "bg-green-100 dark:bg-green-950"
-          }`}>
-            {getIcon(node, isExpanded, hasChildren)}
-          </div>
+          {/* Icon */}
+          {getIcon(node, isExpanded, hasChildren)}
 
           {/* Node name */}
           <div className="flex-1 flex items-center gap-2">
-            <span className={`text-sm ${getTextColor()} ${isSelected ? "text-blue-700 dark:text-blue-400" : ""}`}>
+            <span className={`text-sm ${getTextColor()} ${isSelected ? "text-green-700 dark:text-green-400" : ""}`}>
               {node.name}
             </span>
             
@@ -121,9 +113,9 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
 
           {/* Checkmark for selected */}
           {isSelected && (
-            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           )}
@@ -147,21 +139,13 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
         >
           <div className="flex items-center gap-3">
             {selectedNode ? (
-              <div className={`p-2 rounded-lg ${
-                selectedNode.type === "task"
-                  ? "bg-green-100 dark:bg-green-950"
-                  : "bg-gray-100 dark:bg-gray-800"
-              }`}>
-                {selectedNode.type === "task" ? (
-                  <CheckSquare className="h-6 w-6 text-green-600 dark:text-green-400" />
-                ) : (
-                  <FolderKanban className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-                )}
-              </div>
+              selectedNode.type === "task" ? (
+                <CheckSquare className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+              ) : (
+                <FolderKanban className="h-5 w-5 text-purple-500 dark:text-purple-400 flex-shrink-0" />
+              )
             ) : (
-              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-                <FolderKanban className="h-6 w-6 text-gray-400" />
-              </div>
+              <FolderKanban className="h-5 w-5 text-gray-400 flex-shrink-0" />
             )}
             
             <div className="flex flex-col items-start gap-1">
@@ -184,7 +168,7 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40">
           <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-1">
             Selecciona una tarea
           </h3>
@@ -234,7 +218,7 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
         {/* Footer - Create Task Button */}
         <div className="p-3 border-t border-gray-200 dark:border-gray-700">
           <Link href="/dashboard/projects">
-            <button className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md transition-colors">
+            <button className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-md transition-colors">
               <Plus className="h-4 w-4" />
               <span>Crear nueva tarea</span>
             </button>
