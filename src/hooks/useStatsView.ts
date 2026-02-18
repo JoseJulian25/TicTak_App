@@ -27,7 +27,6 @@ import type {
   HeatmapDay,
 } from "@/types";
 
-// ─── Tipos del return ─────────────────────────────────────────────────────────
 
 export interface StatsViewState {
   // UI state
@@ -55,12 +54,11 @@ export interface StatsViewState {
   totalYearHours:   number;
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
+// Hook para calcular todos los datos necesarios para la vista de estadísticas (StatsView)
 export function useStatsView(): StatsViewState {
   const currentYear = new Date().getFullYear();
 
-  // ── UI state ────────────────────────────────────────────────────────────────
+  //UI state
   const [period,      setPeriod]      = useState<Period>("month");
   const [distribTab,  setDistribTab]  = useState<DistribTab>("projects");
   const [year,        setYear]        = useState(currentYear);
@@ -71,13 +69,13 @@ export function useStatsView(): StatsViewState {
   });
   const [customTo, setCustomTo] = useState(() => new Date().toISOString().slice(0, 10));
 
-  // ── Store data ──────────────────────────────────────────────────────────────
+  // Store data
   const sessions = useSessionStore((s) => s.sessions);
   const tasks    = useTaskStore((s) => s.tasks);
   const projects = useProjectStore((s) => s.projects);
   const clients  = useClientStore((s) => s.clients);
 
-  // ── Active period range ─────────────────────────────────────────────────────
+  // Cálculos
   const activeRange = useMemo<PeriodRange>(() => {
     if (period === "custom") {
       return {
@@ -88,19 +86,16 @@ export function useStatsView(): StatsViewState {
     return getPeriodRange(period);
   }, [period, customFrom, customTo]);
 
-  // ── Metrics ─────────────────────────────────────────────────────────────────
   const metrics = useMemo<PeriodMetric[]>(
     () => calcPeriodMetrics(sessions, period, activeRange),
     [sessions, period, activeRange]
   );
 
-  // ── Insights ────────────────────────────────────────────────────────────────
   const insights = useMemo<PeriodInsightData[]>(
     () => calcPeriodInsights(sessions, tasks, projects, clients, period, activeRange),
     [sessions, tasks, projects, clients, period, activeRange]
   );
 
-  // ── Distribution ────────────────────────────────────────────────────────────
   const distribData = useMemo<DistribData>(
     () => calcDistribution(sessions, tasks, projects, clients, activeRange),
     [sessions, tasks, projects, clients, activeRange]
@@ -116,13 +111,11 @@ export function useStatsView(): StatsViewState {
     [distribItems]
   );
 
-  // ── Recent sessions ─────────────────────────────────────────────────────────
   const recentSessions = useMemo<RecentSession[]>(
     () => calcRecentSessions(sessions, tasks, projects, clients, activeRange),
     [sessions, tasks, projects, clients, activeRange]
   );
 
-  // ── Heatmap ─────────────────────────────────────────────────────────────────
   const heatmapDays = useMemo<HeatmapDay[]>(
     () => calcHeatmapData(sessions, year),
     [sessions, year]
@@ -138,7 +131,7 @@ export function useStatsView(): StatsViewState {
     [heatmapDays]
   );
 
-  // ── Return ──────────────────────────────────────────────────────────────────
+
   return {
     // UI state
     period,      setPeriod,
@@ -150,7 +143,7 @@ export function useStatsView(): StatsViewState {
 
     // Calculated data
     metrics,
-    insights,  // PeriodInsightData[] — el componente asigna los iconos
+    insights,  
     distribItems,
     totalDistribHours,
     maxDistribHours,
