@@ -139,7 +139,7 @@ export function ProjectNodeItem({
                 e.stopPropagation();
                 onToggleComplete(node.id);
               }}
-              className="shrink-0 hover:scale-110 transition-transform"
+              className="shrink-0 hover:scale-110 transition-transform cursor-pointer"
               title={node.isCompleted ? "Marcar como pendiente" : "Marcar como completada"}
             >
               <CheckSquare
