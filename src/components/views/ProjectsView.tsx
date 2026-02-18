@@ -109,16 +109,6 @@ export function ProjectsView() {
 
       {/* Projects Accordion List */}
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {/* Column Headers */}
-        <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-500 uppercase tracking-wider">
-          <div className="w-5" /> {/* Spacer for chevron */}
-          <div className="w-4" /> {/* Spacer for icon */}
-          <div className="flex-1">Nombre</div>
-          <div className="w-12 text-right">Total</div>
-          <div className="hidden lg:block w-20 text-right">Actividad</div>
-          <div className="w-16" /> {/* Spacer for actions */}
-        </div>
-
         {/* Projects Tree */}
         {filteredProjects.length > 0 ? (
           filteredProjects.map((node) => (
