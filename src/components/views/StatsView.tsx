@@ -240,6 +240,11 @@ export function StatsView() {
 
           {/* Distribution list */}
           <div className="space-y-4">
+            {distribItems.length === 0 && (
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">
+                Sin actividad en este período
+              </p>
+            )}
             {distribItems.map((item) => {
               const pct = Math.round((item.hours / maxDistribHours) * 100);
               const share = Math.round((item.hours / totalDistribHours) * 100);
