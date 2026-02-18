@@ -14,12 +14,9 @@ import {
   Zap,
 } from "lucide-react";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+import type { Period, DistribTab, HeatmapDay } from "@/types";
+import { calcHeatmapData, organizeHeatmapByWeeks } from "@/lib/stats-calculator";
 
-type Period = "today" | "week" | "month" | "year" | "custom";
-type DistribTab = "projects" | "clients" | "tasks";
-
-// ─── Hardcoded data per period ────────────────────────────────────────────────
 
 const periodMetrics: Record<Period, { label: string; value: string; sub?: string }[]> = {
   today: [
@@ -233,37 +230,6 @@ const recentSessionsByPeriod: Record<Period, {
 
 // ─── Heatmap helpers ──────────────────────────────────────────────────────────
 
-const generateHeatmapData = (year: number) => {
-  const data: { date: string; hours: number; level: number }[] = [];
-  const start = new Date(year, 0, 1);
-  const end = new Date(year, 11, 31);
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const hours = Math.random() > 0.35 ? Math.floor(Math.random() * 9) : 0;
-    data.push({
-      date: new Date(d).toISOString().split("T")[0],
-      hours,
-      level: hours === 0 ? 0 : hours < 2 ? 1 : hours < 4 ? 2 : hours < 6 ? 3 : 4,
-    });
-  }
-  return data;
-};
-
-const organizeByWeeks = (data: ReturnType<typeof generateHeatmapData>) => {
-  const weeks: typeof data[] = [];
-  let currentWeek: typeof data = [];
-  const firstDay = new Date(data[0].date).getDay();
-  for (let i = 0; i < firstDay; i++) currentWeek.push({ date: "", hours: 0, level: 0 });
-  data.forEach((day) => {
-    currentWeek.push(day);
-    if (currentWeek.length === 7) { weeks.push(currentWeek); currentWeek = []; }
-  });
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) currentWeek.push({ date: "", hours: 0, level: 0 });
-    weeks.push(currentWeek);
-  }
-  return weeks;
-};
-
 const heatmapColors = [
   "bg-gray-100 dark:bg-gray-800",
   "bg-green-200 dark:bg-green-900",
@@ -296,9 +262,9 @@ export function StatsView() {
   const [year, setYear] = useState(currentYear);
   const [customFrom, setCustomFrom] = useState("2026-02-01");
   const [customTo, setCustomTo] = useState("2026-02-14");
-  const [heatmapData] = useState(() => generateHeatmapData(year));
+  const [heatmapData] = useState<HeatmapDay[]>(() => calcHeatmapData([], currentYear));
 
-  const weeks = organizeByWeeks(heatmapData);
+  const weeks = organizeHeatmapByWeeks(heatmapData);
   const totalYearHours = heatmapData.reduce((s, d) => s + d.hours, 0);
 
   const metrics = periodMetrics[period];
