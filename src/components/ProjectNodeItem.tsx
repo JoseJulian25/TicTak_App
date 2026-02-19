@@ -117,13 +117,13 @@ export function ProjectNodeItem({
         `}
         style={{ paddingLeft: `${paddingLeft}px` }}
       >
-        <div className="flex items-center gap-2 pr-2 py-2.5">
+        <div className="flex items-start gap-2 pr-2 py-2.5">
 
           {/* Expand/Collapse */}
           {hasChildren ? (
             <button
               onClick={() => onToggle(node.id)}
-              className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded shrink-0"
+              className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded shrink-0 mt-1.5"
             >
               {isExpanded ? (
                 <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -132,29 +132,31 @@ export function ProjectNodeItem({
               )}
             </button>
           ) : (
-            <div className="w-5" />
+            <div className="w-5 mt-1.5" />
           )}
 
           {/* Icon — tarea: clickeable para toggle completado */}
           {node.type === "task" && onToggleComplete ? (
             <button
               onClick={(e) => {
-                e.stopPropagation();
-                onToggleComplete(node.id);
-              }}
-              className="shrink-0 hover:scale-110 transition-transform cursor-pointer"
-              title={node.isCompleted ? "Marcar como pendiente" : "Marcar como completada"}
-            >
-              <CheckSquare
-                className={`h-4 w-4 transition-colors ${
-                  node.isCompleted
-                    ? "text-green-500"
-                    : "text-gray-300 dark:text-gray-600 hover:text-green-400"
-                }`}
-              />
-            </button>
+                  e.stopPropagation();
+                  onToggleComplete(node.id);
+                }}
+                className="shrink-0 hover:scale-110 transition-transform cursor-pointer"
+                title={node.isCompleted ? "Marcar como pendiente" : "Marcar como completada"}
+              >
+                {node.isCompleted ? (
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-green-500">
+                    <CheckSquare className="h-4 w-4 text-white" />
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full transition-colors bg-transparent hover:bg-green-500">
+                    <CheckSquare className="h-4 w-4 text-green-500 hover:text-white transition-colors" />
+                  </span>
+                )}
+              </button>
           ) : (
-            <span className={`shrink-0 ${getIconColor(node.type)}`}>
+            <span className={`shrink-0 mt-1.5 ${getIconColor(node.type)}`}>
               {getIcon(node.type)}
             </span>
           )}
@@ -170,9 +172,9 @@ export function ProjectNodeItem({
                     href={`/dashboard/tasks/${node.id}`}
                     className={`
                       block truncate text-sm transition-colors
-                      hover:text-green-600 dark:hover:text-green-400 hover:underline
+                      hover:text-green-600 dark:hover:text-green-400
                       ${node.isCompleted
-                        ? "line-through text-gray-400 dark:text-gray-500"
+                        ? "text-gray-400 dark:text-gray-500"
                         : "text-gray-700 dark:text-gray-300"
                       }
                     `}

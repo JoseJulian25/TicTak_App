@@ -18,7 +18,7 @@ export function formatSecondsToHHMMSS(totalSeconds: number): string {
 }
 
 export function formatDuration(totalSeconds: number): string {
-    if (!validSecondsInDay(totalSeconds)) return '';
+    if (totalSeconds == null || isNaN(totalSeconds) || totalSeconds < 0) return '';
 
     const { hours, minutes, seconds } = getTimeParts(totalSeconds);
     const parts = [];
@@ -55,7 +55,7 @@ export function calculateDurationInSeconds(start: Date, end: Date): number {
 }
 
 export function formatDurationShort(totalSeconds: number): string {
-    if (!validSecondsInDay(totalSeconds)) return '';
+    if (totalSeconds == null || isNaN(totalSeconds) || totalSeconds < 0) return '';
     
     const { hours, minutes } = getTimeParts(totalSeconds);
     return `${hours}:${pad(minutes)}`;
