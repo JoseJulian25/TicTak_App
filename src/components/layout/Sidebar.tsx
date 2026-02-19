@@ -23,9 +23,11 @@ export function Sidebar() {
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
           <img src="/favicon-transparent.svg" alt="TicTak Logo" className="w-10 h-10" />
+          <Link className="cursor-pointer" href="/">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             TicTak
           </h1>
+          </Link>
         </div>
       </div>
 

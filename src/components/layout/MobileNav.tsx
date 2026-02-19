@@ -42,9 +42,11 @@ export function MobileNav() {
           {/* Logo and Name - Left */}
           <div className="flex items-center gap-3">
             <img src="/favicon-transparent.svg" alt="TicTak Logo" className="w-8 h-8" />
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              TicTak
-            </h1>
+            <Link className="cursor-pointer" href="/">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                TicTak
+              </h1>
+            </Link>
           </div>
 
           {/* User + Settings - Right */}

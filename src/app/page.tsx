@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { LandingView } from "@/components/views/LandingView";
 
 export default function Home() {
-  redirect("/dashboard/timer");
+  return <LandingView />;
 }
