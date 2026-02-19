@@ -8,6 +8,7 @@ import {
   Linkedin,
   Github,
 } from 'lucide-react';
+import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 
 export function LandingView() {
   return (
@@ -22,11 +23,14 @@ export function LandingView() {
           </Link>
 
           {/* CTA Button */}
-          <Link href="/dashboard">
-            <button className="cursor-pointer bg-gradient-to-r from-[#38a3a5] to-[#57cc99] hover:from-[#22577a] hover:to-[#38a3a5] text-white font-semibold rounded-lg px-5 py-2 transition-all duration-200">
-              Empezar
-            </button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggleButton />
+            <Link href="/dashboard">
+              <button className="cursor-pointer bg-gradient-to-r from-[#38a3a5] to-[#57cc99] hover:from-[#22577a] hover:to-[#38a3a5] text-white font-semibold rounded-lg px-5 py-2 transition-all duration-200">
+                Empezar
+              </button>
+            </Link>
+          </div>
         </div>
       </nav>
 
