@@ -253,64 +253,95 @@ export function LandingView() {
       </section>
 
       {/* Screenshot Showcase */}
-      <section className="relative overflow-hidden py-20 bg-white dark:bg-gray-950">
-        <div className="absolute bottom-0 right-0 w-96 h-64 rounded-full bg-gradient-to-tl from-[#57cc99]/10 to-[#38a3a5]/10 blur-3xl pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="relative overflow-hidden py-16 bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/40 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+        {/* Blobs */}
+        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-gradient-to-br from-[#38a3a5]/20 to-[#57cc99]/30 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -right-16 w-64 h-64 rounded-full bg-gradient-to-br from-[#57cc99]/20 to-[#38a3a5]/20 blur-3xl pointer-events-none" />
+        {/* Diagonal bottom band */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+          style={{ background: 'linear-gradient(to bottom right, transparent 49%, rgba(87,204,153,0.15) 50%)' }}
+        />
+        <div className="max-w-4xl mx-auto px-6">
           {/* Title */}
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               Una interfaz limpia que no se mete en tu camino
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-gray-500 dark:text-gray-400 mt-1.5 text-sm">
               Diseñada para que el foco esté en el trabajo, no en la herramienta.
             </p>
           </div>
 
-          {/* Screenshot Mockups */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Timer View */}
-            <div className="relative shadow-xl rounded-lg overflow-hidden">
-              <div className="bg-gray-100 dark:bg-gray-800 px-3 py-2 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+          {/* Screenshot Mockups — asymmetric layout */}
+          <div className="grid lg:grid-cols-5 gap-5 items-start">
+
+            {/* Timer — portrait, 2 cols */}
+            <div className="lg:col-span-2 flex flex-col gap-2">
+              <div className="rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                <div className="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                  </div>
+                </div>
+                <div className="aspect-[3/4] overflow-hidden">
+                  <img src="/timer-view.png" alt="Vista del timer" className="w-full h-full object-cover object-top" />
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-[#38a3a5]/10 to-[#80ed99]/10 dark:from-[#38a3a5]/20 dark:to-[#80ed99]/20 aspect-[3/4] flex flex-col items-center justify-center p-8">
-                <Timer className="h-16 w-16 text-[#38a3a5] mb-4" />
-                <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">Timer</div>
+              <div className="flex items-center gap-2 px-1">
+                <Timer className="h-3.5 w-3.5 text-[#38a3a5]" />
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Timer</span>
+                <span className="text-xs text-gray-400 ml-auto">Tus sesiones, sin distracciones</span>
               </div>
             </div>
 
-            {/* Projects View */}
-            <div className="relative shadow-xl rounded-lg overflow-hidden">
-              <div className="bg-gray-100 dark:bg-gray-800 px-3 py-2 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-br from-[#57cc99]/10 to-[#38a3a5]/10 dark:from-[#57cc99]/20 dark:to-[#38a3a5]/20 aspect-[3/4] flex flex-col items-center justify-center p-8">
-                <FolderKanban className="h-16 w-16 text-[#57cc99] mb-4" />
-                <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">Proyectos</div>
-              </div>
-            </div>
+            {/* Projects + Stats — landscape, 3 cols */}
+            <div className="lg:col-span-3 flex flex-col gap-4">
 
-            {/* Stats View */}
-            <div className="relative shadow-xl rounded-lg overflow-hidden">
-              <div className="bg-gray-100 dark:bg-gray-800 px-3 py-2 flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+              {/* Projects */}
+              <div className="flex flex-col gap-2">
+                <div className="rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                  <div className="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-red-500" />
+                      <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    </div>
+                  </div>
+                  <div className="aspect-[16/9] overflow-hidden">
+                    <img src="/projects-view.png" alt="Vista de proyectos" className="w-full h-full object-cover object-top" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-1">
+                  <FolderKanban className="h-3.5 w-3.5 text-[#57cc99]" />
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Proyectos</span>
+                  <span className="text-xs text-gray-400 ml-auto">Organiza todo en un vistazo</span>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-[#38a3a5]/10 to-[#57cc99]/10 dark:from-[#38a3a5]/20 dark:to-[#57cc99]/20 aspect-[3/4] flex flex-col items-center justify-center p-8">
-                <BarChart3 className="h-16 w-16 text-[#38a3a5] mb-4" />
-                <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">Estadísticas</div>
+
+              {/* Stats */}
+              <div className="flex flex-col gap-2">
+                <div className="rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                  <div className="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-red-500" />
+                      <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    </div>
+                  </div>
+                  <div className="aspect-[16/9] overflow-hidden">
+                    <img src="/stats-view.png" alt="Vista de estadísticas" className="w-full h-full object-cover object-top" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-1">
+                  <BarChart3 className="h-3.5 w-3.5 text-[#38a3a5]" />
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Estadísticas</span>
+                  <span className="text-xs text-gray-400 ml-auto">Patrones que no sabías que tenías</span>
+                </div>
               </div>
+
             </div>
           </div>
         </div>
