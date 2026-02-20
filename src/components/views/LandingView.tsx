@@ -48,10 +48,6 @@ export function LandingView() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Text */}
             <div>
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-sm font-medium px-3 py-1 rounded-full">
-                ⏱ Rastreador de tiempo personal
-              </div>
 
               {/* Title */}
               <h1 className="text-4xl lg:text-5xl font-bold leading-tight mt-6 text-gray-900 dark:text-gray-100">
