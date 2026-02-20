@@ -107,10 +107,6 @@ export function LandingView() {
       <section className="bg-gray-50 dark:bg-gray-900 border-y border-gray-200 dark:border-gray-700 py-4">
         <div className="max-w-7xl mx-auto px-2">
           <div className="flex items-center justify-center gap-6 text-sm text-gray-600 dark:text-gray-400 overflow-x-auto">
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              Sin cuenta necesaria
-            </div>
             <span className="text-gray-300 dark:text-gray-700">·</span>
             <div className="flex items-center gap-2 whitespace-nowrap">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
