@@ -75,7 +75,7 @@ export function LandingView() {
 
               {/* Note */}
               <p className="text-sm text-gray-400 mt-3">
-                Sin registro · Sin servidores · Tus datos, en tu dispositivo
+                Sin registro · Empieza en segundos · Completamente gratis
               </p>
             </div>
 
@@ -114,7 +114,7 @@ export function LandingView() {
             <span className="text-gray-300 dark:text-gray-700">·</span>
             <div className="flex items-center gap-2 whitespace-nowrap">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              Datos 100% locales
+              Sin registro requerido
             </div>
             <span className="text-gray-300 dark:text-gray-700">·</span>
             <div className="flex items-center gap-2 whitespace-nowrap">
