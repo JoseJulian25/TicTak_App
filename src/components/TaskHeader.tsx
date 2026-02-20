@@ -89,7 +89,7 @@ export function TaskHeader({ task, onUpdate, onStartTimer, isTimerActive = false
                 setIsEditingTitle(false);
               }
             }}
-            className="text-3xl font-semibold border-blue-500 dark:border-blue-400"
+            className="text-3xl font-semibold border-blue-500 dark:border-blue-400 min-w-0"
             autoFocus
           />
         ) : (
@@ -98,7 +98,7 @@ export function TaskHeader({ task, onUpdate, onStartTimer, isTimerActive = false
               setTitle(task.name);
               setIsEditingTitle(true);
             }}
-            className="text-3xl font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors"
+            className="text-3xl font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-green-600 dark:hover:text-green-400 transition-colors min-w-0 break-words"
           >
             {task.name}
           </h1>

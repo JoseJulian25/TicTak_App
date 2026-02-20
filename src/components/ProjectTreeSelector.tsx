@@ -149,9 +149,6 @@ export const ProjectTreeSelector = memo(function ProjectTreeSelector({
             )}
             
             <div className="flex flex-col items-start gap-1">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                Proyecto / Tarea
-              </span>
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 text-left">
                 {getNodePath(selectedNode)}
               </span>

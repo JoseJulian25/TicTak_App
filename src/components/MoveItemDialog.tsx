@@ -134,11 +134,12 @@ export function MoveItemDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[600px]">
-        <DialogHeader>
+      <DialogContent className="max-w-lg w-[calc(100vw-2rem)] sm:w-full max-h-[min(600px,90svh)] flex flex-col">
+        <DialogHeader className="min-w-0">
           <DialogTitle>Mover {itemType === "task" ? "tarea" : "proyecto"}</DialogTitle>
-          <DialogDescription>
-            Selecciona el {destinationType} de destino para <span className="font-medium">{itemName}</span>
+          <DialogDescription className="break-words">
+            Selecciona el {destinationType} de destino para{" "}
+            <span className="font-medium break-all">{itemName}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -179,9 +180,9 @@ export function MoveItemDialog({
               {filteredGroups.map((group) => (
                 <div key={group.clientId}>
                   {/* Encabezado del cliente */}
-                  <div className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-blue-500" />
-                    {group.clientName}
+                  <div className="font-medium text-sm text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 min-w-0">
+                    <Building2 className="h-4 w-4 text-blue-500 shrink-0" />
+                    <span className="truncate">{group.clientName}</span>
                   </div>
 
                   {/* Lista de proyectos del cliente */}
